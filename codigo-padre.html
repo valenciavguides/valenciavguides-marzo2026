@@ -6359,24 +6359,11 @@
                     const errCode = parseInt(document.getElementById('gps-signal-action')
                         ?.getAttribute('data-gps-error-code') || '0');
                     if (errCode === 1) {
-                        const esApple = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                        if (esApple) {
-                            // iOS no permite re-solicitar permisos GPS desde JS — el usuario debe ir a Ajustes.
-                            // Registrar listener de visibilidad para reintentar GPS automáticamente al volver.
-                            document.addEventListener('visibilitychange', function() {
-                                if (document.visibilityState === 'visible') {
-                                    activarGPS().catch(() => { /* overlay vuelve si GPS sigue denegado */ });
-                                }
-                            }, { once: true });
-                            // En PWA instalada (standalone), navegar a Ajustes directamente
-                            if (navigator.standalone) {
-                                try { window.location.href = 'app-settings:'; } catch (_) { /* ignorar */ }
-                            }
-                        } else {
-                            activarGPS().catch(err => {
-                                (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] activarGPS falló en reintento:', err?.message);
-                            });
-                        }
+                        // Con el permiso denegado, el botón vuelve a pedir el GPS en todos los teléfonos: si el usuario lo
+                        // ha permitido en los ajustes, se activa; si no, la pantalla vuelve (K-152, un solo camino).
+                        activarGPS().catch(err => {
+                            (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] activarGPS falló en reintento:', err?.message);
+                        });
                         return; // overlay se oculta vía _watchPositionSuccess cuando GPS da posición
                     }
                     // Para TIMEOUT / POSITION_UNAVAILABLE: watchPosition ya corre, pedir una posición puntual
@@ -6426,9 +6413,9 @@
                         btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️→🌐→⚙️</span>';
                         btn.setAttribute('aria-label', 'Activar permisos GPS');
                         btn.title = 'Activar permisos GPS';
-                        // Auto-detectar permiso concedido en SO sin necesidad de pulsar el botón (no-iOS)
-                        const esApple = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                        if (!esApple && !globalThis.__vv_gps_perm_watcher) {
+                        // Si el permiso vuelve (el usuario lo permite en los ajustes del teléfono), el GPS se activa sin
+                        // pulsar el botón, en todos los teléfonos (K-152). Con un navegador que no avisa del cambio, queda el botón.
+                        if (!globalThis.__vv_gps_perm_watcher) {
                             globalThis.__vv_gps_perm_watcher = true;
                             consultarPermisoGeolocalizacion().then(status => {
                                 // Sin la API de permisos no hay nada que vigilar: el vigilante queda libre.

@@ -4933,7 +4933,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-4c68f353f66a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-9006b880d292'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8088,7 +8088,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `167-el-mapa-antiguo-sin-botones-y-con-su-x-entera.spec.js` | 6 | El mapa antiguo en sus dos sitios —el del padre a pantalla completa, que pide hijo2 (`NAVEGACION.MOSTRAR_MAPA_VINTAGE`), y el de la selección (`#mapa-vintage-overlay`)—, en vertical de móvil (390×844) y en 1920×1080: sin controles de zoom (MA-1), y la ✗ entera y a 8 px o más del borde de arriba de su capa —en el padre, por debajo de la muesca— y del de la derecha (MA-2); de control, la rueda acerca el mapa (MA-3), y la transformación solo desplaza y escala: el mapa no gira (MA-4). La rueda se da con un `WheelEvent` en la página, porque Playwright no la mueve en WebKit móvil. |
 | `168-circulo-y-lineas-con-maplibre-real.spec.js` | 3 | El único spec con el MapLibre de verdad (los demás cargan `helpers/maplibre-stub.js`, cuyo `isStyleLoaded()` dice siempre que sí), con las teselas servidas por `context.route` con retraso (§4.6a): con teselas bajando, `actualizarMarcadorUsuario()` en AVENTURA deja el círculo naranja en el mapa (CR-1) y `dibujarPolylineNavegacion()` deja su línea (CR-2); por el camino real —paso a AVENTURA por su handler, `CAMBIO_PARADA` del inicio con su vuelo a zoom 17 y la primera lectura—, con el mapa ya quieto, el círculo está (CR-3) |
 | `169-llegada-al-inicio-carteles-y-audio.spec.js` | 12 | Lo que decide la posición al llegar al punto de inicio, por el camino real (la selección hasta P17, como el spec 131, y lecturas por `watchPosition`): «Ha llegado» sale con la llegada confirmada y no con una lectura suelta (LL-1) y una sola vez aunque se vaya a CASA y se vuelva (LL-2) (§4.7j); «Ha vuelto a su aventura» no sale la primera vez que se llega con la línea verde puesta (BV-1), y sí a quien ya estuvo y vuelve (BV-2) (§4.7k-l); con la primera lectura a 40 m el audio queda apagado (AU-1), una lectura suelta dentro no lo enciende y la llegada confirmada sí (AU-2) (§25.7), y con el audio apagado no sale «Recuerde pulsar play» (AU-3) (§25.5c); y cada cartel pide solo lo que se puede pulsar, con sus iconos (§4.7h): «Ha llegado» pide play y no «avanzar» (AC-1), en un idioma sin audio grabado pide ⏩ (AC-2), «Ha vuelto a su aventura» con todo apagado no pide nada (AC-3), el de inicio de tramo pide «avanzar», play y la línea azul (AC-4), y «Ha vuelto al camino», play y la línea azul (AC-5) |
-| `170-una-sola-forma-de-pedir-una-posicion.spec.js` | 14 | Una sola llamada a `getCurrentPosition` en lo que ejecuta el navegador, la de `pedirPosicionPuntual()` de `js/utils.js`, leído en el fuente (PP-1); el reintento de la pantalla de sin señal pide la posición con 15 s fijos (PP-2, §31.2) y el de las pantallas de distancia con 5 s ajustados a la conexión (PP-3, §31.4); lo que hace cada reintento con la respuesta: sin señal, al acertar la posición entra en el pipeline y la pantalla se quita (PP-4), y al fallar sigue, con el mensaje real del navegador en `#gps-signal-detalle` (PP-5); en una pantalla de distancia, al acertar la posición entra en el pipeline sin pantalla de sin señal (PP-6), y al fallar sale la de sin señal con el mensaje real (PP-7); la vigilancia continua se abre en un solo sitio y se cierra en otro (PP-8, leído en el fuente); con permiso denegado se cierra y `watchId` queda en `null` (PP-9), y con el plazo vencido se cierra y se abre otra sin alta precisión y con 15 s (PP-10); el permiso de geolocalización se consulta en un solo sitio, `consultarPermisoGeolocalizacion()` de `js/utils.js` (PP-11, leído en el fuente), y con él: con el permiso denegado el GPS no se activa (PP-12), tras un «denegado», fuera de Apple el GPS se activa solo cuando el permiso vuelve y en Apple no se vigila el permiso: cada navegador comprueba su rama (PP-13, §31.3), y el diagnóstico cuenta el estado (PP-14) |
+| `170-una-sola-forma-de-pedir-una-posicion.spec.js` | 15 | Una sola llamada a `getCurrentPosition` en lo que ejecuta el navegador, la de `pedirPosicionPuntual()` de `js/utils.js`, leído en el fuente (PP-1); el reintento de la pantalla de sin señal pide la posición con 15 s fijos (PP-2, §31.2) y el de las pantallas de distancia con 5 s ajustados a la conexión (PP-3, §31.4); lo que hace cada reintento con la respuesta: sin señal, al acertar la posición entra en el pipeline y la pantalla se quita (PP-4), y al fallar sigue, con el mensaje real del navegador en `#gps-signal-detalle` (PP-5); en una pantalla de distancia, al acertar la posición entra en el pipeline sin pantalla de sin señal (PP-6), y al fallar sale la de sin señal con el mensaje real (PP-7); la vigilancia continua se abre en un solo sitio y se cierra en otro (PP-8, leído en el fuente); con permiso denegado se cierra y `watchId` queda en `null` (PP-9), y con el plazo vencido se cierra y se abre otra sin alta precisión y con 15 s (PP-10); el permiso de geolocalización se consulta en un solo sitio, `consultarPermisoGeolocalizacion()` de `js/utils.js` (PP-11, leído en el fuente), y con él: con el permiso denegado el GPS no se activa (PP-12), tras un «denegado», en todos los teléfonos, iPhone incluido, el GPS se activa solo cuando el permiso vuelve (PP-13, §31.3) y el botón de la pantalla de sin señal lo vuelve a pedir (PP-15) —con las ramas aparte para iPhone, iPad e iPod, caen los dos en iphone12—, y el diagnóstico cuenta el estado (PP-14) |
 | `171-una-sola-lista-de-dispositivos.spec.js` | 9 | Una sola lista de tipos de dispositivo (`tipoDeDispositivo()` de `js/device-detection.js`, §26): `esMovil` se define solo ahí (DL-1, leído en el fuente), y ocho dispositivos, con su agente de usuario y sus puntos táctiles, salen con su tipo —iPhone y Android con «Mobile», móvil; Android sin «Mobile», Firefox en una tableta Android, el iPad antiguo y el de iPadOS 13 o posterior (que se presenta como Mac), tableta; Mac y Windows, PC—, con `esMovil()` y `esTelefonoMovil()` de acuerdo con el tipo (DL-2) |
 | `172-hijo-listo-con-reintentos-un-solo-camino.spec.js` | 14 | El último paso del apretón de manos es uno solo para los seis hijos y la selección: `enviarHijoListoConReintento` del bus (§26.13). Con cada uno en `helpers/marco-vacio.html`, que hace de padre: sin confirmación repite `HIJO_LISTO`, y con ella para, sin ninguno después (HL-1); sin confirmación nunca, exactamente 30 intentos, el último recurso —hijo1 a hijo5 enseñan su interfaz— y ni uno más (HL-2, con el reloj de Playwright). Se valida con la función rota (sin reprogramar el siguiente intento caen los doce casos de los hijos, y sin parar, sus seis HL-1) y con la selección mandando un solo `HIJO_LISTO` (caen sus dos casos). |
 | `173-el-fuera-de-rango-es-de-un-elemento.spec.js` | 4 | El fuera de rango es de un elemento (§31.4): fuera de rango del inicio, al pasar a la parada 1 el padre lo olvida, quita la pantalla de distancia y «avanzar» espera a la parada y no al rango (FR-1); una lectura medida contra el elemento anterior, llegada después del cambio, no pone a hijo2 fuera de rango (FR-2); el padre no apunta el fuera de rango ni enseña la distancia de un elemento que no es el actual, y sí los del actual (FR-3); y, de control, reactivar el mismo elemento no olvida su fuera de rango (FR-4). Sin la regla caen FR-1, FR-2 y FR-3. |
@@ -9141,7 +9141,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-4c68f353f66a';
+const CACHE_VERSION = 'v-9006b880d292';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9767,12 +9767,12 @@ Dev mode persiste (`_devCasaMode` es `true`) — el desarrollador puede volver a
 
 #### Caso adicional B — GPS denegado: recuperación automática al conceder el permiso
 
-Si GPS falla por permiso denegado (`errorCode === 1`), `showGpsSignalOverlay(1)` muestra el overlay con el botón `🛰️→🌐→⚙️`. La recuperación ocurre de dos formas:
+Si GPS falla por permiso denegado (`errorCode === 1`), `showGpsSignalOverlay(1)` muestra el overlay con el botón `🛰️→🌐→⚙️`. La recuperación es la misma en todos los teléfonos, iPhone incluido, y llega por cualquiera de dos vías:
 
-- **iOS (iPad/iPhone/iPod):** al pulsar el botón, se registra un listener `visibilitychange { once: true }`. Cuando el desarrollador vuelve de Ajustes, `activarGPS()` se llama automáticamente.
-- **No-iOS:** al mostrar el overlay, se consulta el permiso con `consultarPermisoGeolocalizacion()` y se escucha su evento `change`, con un guard `__vv_gps_perm_watcher` para evitar duplicados (sin la API de permisos no hay nada que escuchar y el guard queda libre). Cuando el SO cambia el estado de geolocation a `'granted'` (sin necesidad de pulsar el botón), `activarGPS()` se llama automáticamente. Si el desarrollador pulsa el botón, `activarGPS()` también se llama directamente.
+- **Sola:** al mostrar el overlay, se consulta el permiso con `consultarPermisoGeolocalizacion()` y se escucha su evento `change`, con un guard `__vv_gps_perm_watcher` para evitar duplicados (sin la API de permisos no hay nada que escuchar y el guard queda libre). Cuando el sistema cambia el estado de geolocation a `'granted'`, sin pulsar el botón, `activarGPS()` se llama automáticamente. Un navegador que no avisa del cambio deja la otra vía.
+- **Con el botón:** al pulsarlo, `activarGPS()` se llama directamente: si el usuario ha permitido la ubicación en los ajustes del teléfono, el GPS se activa; si no, el overlay vuelve.
 
-En ambos casos: cuando GPS da la primera posición válida, `_watchPositionSuccess` llama a `hideGpsSignalOverlay()` y la app continúa.
+Por las dos vías, cuando GPS da la primera posición válida, `_watchPositionSuccess` llama a `hideGpsSignalOverlay()` y la app continúa.
 
 ---
 
@@ -12566,7 +12566,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-4c68f353f66a';
+const CACHE_VERSION = 'v-9006b880d292';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12689,23 +12689,15 @@ Además, botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que e
 
 **Qué ve el usuario:** mismo overlay `imagen-no-gps.png` pero con botón distinto: **🛰️→🌐→⚙️** (secuencia visual que indica el camino: GPS de la app → permisos del browser → ajustes del sistema).
 
-**Comportamiento del botón — difiere por plataforma:**
+**Comportamiento del botón, el mismo en todos los teléfonos:** llama a `activarGPS()`, que puede disparar el diálogo nativo de permisos si el estado es `prompt`; si el usuario ya ha permitido la ubicación en los ajustes del teléfono, el GPS se activa, y si el permiso sigue denegado, la pantalla vuelve. Con la primera posición, `_watchPositionSuccess` llama a `hideGpsSignalOverlay()` y la aventura continúa.
 
-| Plataforma | Al pulsar 🛰️→🌐→⚙️ |
-|---|---|
-| **iOS Safari** (standalone PWA) | Registra `visibilitychange` listener para reintentar GPS al volver + navega a `app-settings:` (abre Ajustes del iPhone) |
-| **iOS Safari** (browser normal) | Registra `visibilitychange` listener para reintentar GPS al volver (no puede abrir Ajustes sin romper el flujo de browser) |
-| **Android / Chrome / otros** | Llama a `activarGPS()` — puede disparar el diálogo nativo de permisos si el estado es `prompt`; si ya estaba `denied`, el browser lo ignora silenciosamente |
-
-El reintento automático al volver (iOS): cuando el usuario regresa desde Ajustes habiendo concedido el permiso, el evento `visibilitychange` → `visible` dispara `activarGPS()`. Si `watchPosition` tiene éxito, `_watchPositionSuccess` llama a `hideGpsSignalOverlay()` y la aventura continúa sin interacción adicional.
-
-Fuera de iOS, además, la pantalla vigila el permiso: al mostrarse lo consulta con `consultarPermisoGeolocalizacion()` (`js/utils.js`) y escucha su evento `change`, y cuando el sistema lo concede llama a `activarGPS()` sin que el usuario pulse nada. La bandera `__vv_gps_perm_watcher` evita un segundo vigilante; sin la API de permisos no hay nada que vigilar y la bandera queda libre. En iPhone, iPad e iPod (`/iPad|iPhone|iPod/` en el `userAgent`) no se vigila: la recuperación es la del botón.
+Además, la pantalla vigila el permiso, también en todos los teléfonos: al mostrarse lo consulta con `consultarPermisoGeolocalizacion()` (`js/utils.js`) y escucha su evento `change`, y cuando el sistema lo concede llama a `activarGPS()` sin que el usuario pulse nada. La bandera `__vv_gps_perm_watcher` evita un segundo vigilante; sin la API de permisos no hay nada que vigilar y la bandera queda libre. Con un navegador que no avisa del cambio, la recuperación es la del botón. Lo comprueba el spec 170 (PP-13 y PP-15), en los cuatro navegadores.
 
 No hay countdown ni reintento automático por tiempo — es una decisión del usuario.
 
 **Sin el permiso la aventura no puede continuar** — el GPS es imprescindible para validar llegadas a paradas y tramos. El overlay permanece hasta que el usuario concede el permiso.
 
-**Estado de implementación:** ✅ implementado. El overlay se muestra vía `showGpsSignalOverlay(1)` con botón 🛰️→🌐→⚙️ desde `_watchPositionError`. Detección iOS en `_ensureGpsSignalOverlay` → listener `visibilitychange` + `app-settings:` para standalone.
+**Estado de implementación:** ✅ implementado. El overlay se muestra vía `showGpsSignalOverlay(1)` con botón 🛰️→🌐→⚙️ desde `_watchPositionError`; la vigilancia del permiso y el botón, en `showGpsSignalOverlay` y `_ensureGpsSignalOverlay`.
 
 **Mismo lenguaje visual antes de empezar la aventura (P14):** `En-busca-del-tesoro.html` reutiliza la misma imagen (`imagen-no-gps.png`) y el mismo emoji (`🛰️→🌐→⚙️`) en `#gps-denegado-p14` cuando `_irANormativa()` detecta `navigator.permissions.query({name:'geolocation'})` en estado `denied` — ver §7.1, tabla de 18 pantallas (fila P14). A diferencia de este overlay del padre, en P14 no hay countdown ni botón propio: es un bloque estático sin texto que se oculta/muestra junto al botón `#btn-iniciar-aventura` ya existente; el usuario corrige el permiso y vuelve a pulsar la misma flecha.
 
@@ -12864,17 +12856,9 @@ En los tres casos el resultado es el mismo: la parada no queda bloqueada, y todo
 
 Este subsección recoge los comportamientos diferenciados por plataforma que pueden afectar a la experiencia durante la aventura. Para la documentación completa de la estrategia técnica (por qué no se hace polyfill, requisitos de build, manifest.json), ver **§22.13**.
 
-#### GPS denegado en iOS — comportamiento diferente al de Android/escritorio
+#### GPS denegado en iOS
 
-Cuando el usuario deniega el permiso de GPS en iOS, la app no puede volver a solicitar el permiso desde JavaScript. El flujo es distinto según plataforma:
-
-| Plataforma | Qué hace el botón 🛰️→🌐→⚙️ del overlay de GPS denegado |
-|---|---|
-| Android / escritorio | Llama `activarGPS()` de nuevo; además, mientras el aviso está a la vista, la app escucha el cambio de permiso (`navigator.permissions`) y reactiva el GPS sola en cuanto pasa a `granted` |
-| iOS navegador (Safari) | Registra un `visibilitychange` de una vez: al volver la página a primer plano (de Ajustes), llama `activarGPS()`; el usuario va a Ajustes a mano |
-| iOS PWA (standalone) | Lo mismo, y además navega a `app-settings:` para intentar abrir los Ajustes |
-
-En iOS no se escucha el cambio de permiso: sin pulsar el botón, el GPS no se reactiva solo. Las dos ramas por `esApple` están registradas como K-152 en el estudio (unificar el comportamiento en todos los teléfonos), con lo que hay que medir en un iPhone real. Si el usuario concedió el permiso, el overlay desaparece con la primera posición; si no, reaparece.
+Cuando el usuario deniega el permiso de GPS en iOS, la app no puede volver a solicitarlo desde JavaScript: el usuario lo cambia en Ajustes. La pantalla de GPS denegado hace lo mismo que en el resto de teléfonos: escucha el cambio de permiso (`navigator.permissions`) y reactiva el GPS sola en cuanto pasa a `granted`, y su botón 🛰️→🌐→⚙️ llama a `activarGPS()`. Si Safari no avisa del cambio, al volver de Ajustes el usuario pulsa el botón. Si el usuario concedió el permiso, el overlay desaparece con la primera posición; si no, reaparece.
 
 **Código relevante:** `_ensureGpsSignalOverlay()` en `codigo-padre.html`, en el handler del botón de reintento para `errCode === 1`.
 
@@ -14289,36 +14273,36 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `rotationSuppressed` | clásico 8 (L1642) | módulo 1, módulo 2 | función/objeto |
 | `__cargarDatosAventuraDiferidos` | módulo 1 (L3647) | módulo 2 | función/objeto |
 | `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5034) | clásico 12 | estado |
-| `__VV_5KM_BLOCKED` | módulo 1 (L5521) | módulo 2 | función/objeto |
+| `__VV_5KM_BLOCKED` | módulo 1 (L5525) | módulo 2 | función/objeto |
 | `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3631) | módulo 2 | función/objeto |
 | `__vv_DATOS_AVENTURAS` | módulo 1 (L3630) | módulo 2 | función/objeto |
-| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6382) | clásico 12 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6373) | clásico 12 | estado |
 | `__vv_INDICE_AVENTURAS` | módulo 1 (L3614) | módulo 2 | función/objeto |
-| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6512) | clásico 12 | estado |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6503) | clásico 12 | estado |
 | `__vv_MAPAS_VINTAGE` | módulo 1 (L3632) | módulo 2 | función/objeto |
 | `__vv_registroScript1` | módulo 1 (L3512) | módulo 2 | estado |
 | `__vv_salidaEnlaceExterno` | módulo 1 (L4770) | módulo 2 | función/objeto |
 | `_apilarEntradaDeAventura` | módulo 1 (L4756) | módulo 2 | función/objeto |
 | `_cerrarDesplegablesDelPadre` | módulo 1 (L4727) | módulo 2 | función/objeto |
-| `_codigoValidadoP14` | módulo 1 (L6922) | módulo 2 | función/objeto |
-| `_detenerRecordatorioAudio` | módulo 1 (L8301) | módulo 2 | función/objeto |
-| `_detenerRecordatorioReto` | módulo 1 (L8527) | módulo 2 | función/objeto |
-| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8427) | módulo 2 | función/objeto |
+| `_codigoValidadoP14` | módulo 1 (L6913) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L8292) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L8518) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L8418) | módulo 2 | función/objeto |
 | `_devModeActivo` | módulo 1 (L3939) | módulo 2 | estado |
 | `_entradaDeCoordenadas` | módulo 1 (L3705) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioAudio` | módulo 1 (L8396) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioReto` | módulo 1 (L8611) | módulo 2 | función/objeto |
-| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8503) | módulo 2 | función/objeto |
-| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8402) | módulo 2 | función/objeto |
-| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8619) | módulo 2 | función/objeto |
-| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8271) | módulo 2 | función/objeto |
-| `_ocultarCualquierCartel` | módulo 1 (L7799) | módulo 2 | función/objeto |
-| `_ocultarPantallasDistanciaDelElemento` | módulo 1 (L5853) | módulo 2 | función/objeto |
-| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5873) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioAudio` | módulo 1 (L8387) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L8602) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L8494) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L8393) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L8610) | módulo 2 | función/objeto |
+| `_mostrarCartelRecordatorioRescate` | módulo 1 (L8262) | módulo 2 | función/objeto |
+| `_ocultarCualquierCartel` | módulo 1 (L7790) | módulo 2 | función/objeto |
+| `_ocultarPantallasDistanciaDelElemento` | módulo 1 (L5857) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L5877) | módulo 2 | función/objeto |
 | `ajustarTimeoutPorConexion` | módulo 1 (L3764) | módulo 2 | función/objeto |
 | `aventuraSeleccionada` | módulo 1 (L4973) | clásico 7, módulo 2 | estado |
-| `cargarHijoCasa` | módulo 1 (L7585) | módulo 2 | función/objeto |
-| `cargarRestoDeiframes` | módulo 1 (L7584) | módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L7576) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L7575) | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3856) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3758) | clásico 7, clásico 8, módulo 2, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3759) | módulo 2 | función/objeto |
@@ -14326,55 +14310,55 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `estadoPadre` | módulo 1 (L3944) | clásico 7, módulo 2 | función/objeto |
 | `findIndexByPadreIdOrId` | módulo 1 (L4302) | módulo 2 | función/objeto |
 | `getEstadoSafe` | módulo 1 (L4053) | módulo 2 | función/objeto |
-| `hideGpsPrecisionOverlay` | módulo 1 (L6286) | módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6290) | módulo 2 | función/objeto |
 | `hideParentLoadingOverlay` | módulo 1 (L2775) | módulo 2 | función/objeto |
 | `idiomaSeleccionado` | módulo 1 (L4974) | clásico 5, clásico 7, módulo 2 | estado |
 | `limpiarDatosAventura` | módulo 1 (L2812) | módulo 2 | función/objeto |
 | `MODOS` | módulo 1 (L3757) | módulo 2 | función/objeto |
 | `mostrarAvisosDelDispositivo` | módulo 1 (L4593) | módulo 2 | función/objeto |
-| `mostrarCartelInicioTramo` | módulo 1 (L8002) | módulo 2 | función/objeto |
-| `mostrarCartelTransicion` | módulo 1 (L7929) | módulo 2 | función/objeto |
-| `mostrarModalFinalizacion` | módulo 1 (L7739) | módulo 2 | función/objeto |
-| `mostrarPulsoValoracionPadre` | módulo 1 (L7782) | módulo 2 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L7993) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L7920) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L7730) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L7773) | módulo 2 | función/objeto |
 | `persistProgressState` | módulo 1 (L4149) | módulo 2 | función/objeto |
 | `registrarControladorSeguro` | módulo 1 (L5062) | módulo 2, módulo 4 | función/objeto |
 | `registrarEvento` | módulo 1 (L5089) | módulo 2 | función/objeto |
 | `reproducirVideoConBuffer` | módulo 1 (L2817) | clásico 8 | función/objeto |
 | `resolverIdsParada` | módulo 1 (L2805) | módulo 2 | función/objeto |
 | `retryUntilAvailable` | módulo 1 (L2806) | módulo 2 | función/objeto |
-| `showFotoDesviadoOverlay` | módulo 1 (L6126) | módulo 2 | función/objeto |
-| `showFotoFueraRangoOverlay` | módulo 1 (L6054) | módulo 2 | función/objeto |
-| `showFotoLejosOverlay` | módulo 1 (L5984) | módulo 2 | función/objeto |
-| `showFotoPerdidoOverlay` | módulo 1 (L6203) | módulo 2 | función/objeto |
-| `showGpsPrecisionOverlay` | módulo 1 (L6277) | módulo 2 | función/objeto |
-| `showGpsSignalOverlay` | módulo 1 (L6572) | módulo 2 | función/objeto |
-| `showInternetOverlay` | módulo 1 (L6571) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6130) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6058) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L5988) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6207) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6281) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6563) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6562) | módulo 2 | función/objeto |
 | `showParentLoadingOverlay` | módulo 1 (L2763) | módulo 2 | función/objeto |
 | `TIPOS_MENSAJE` | módulo 1 (L3756) | clásico 7, clásico 8, módulo 2 | función/objeto |
 | `toggleRotationMessage` | módulo 1 (L3917) | clásico 8, módulo 2 | función/objeto |
 | `updateLoadingStatus` | módulo 1 (L2791) | módulo 2 | función/objeto |
-| `__VV_PENDING_CLEANUP` | módulo 2 (L13309) | clásico 12 | estado |
-| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9604) | módulo 1 | función/objeto |
-| `_cerrarVentanaTemporizador` | módulo 2 (L12320) | módulo 1 | función/objeto |
-| `_decidirAvanzar` | módulo 2 (L10820) | módulo 1 | función/objeto |
-| `_estadoRescate` | módulo 2 (L13291) | clásico 7 | función/objeto |
-| `_etiquetasNumeroDeMapa` | módulo 2 (L12403) | clásico 8 | función/objeto |
-| `_hijosConCapaAbierta` | módulo 2 (L11389) | módulo 1 | función/objeto |
-| `_iniciarTemporizadorAventura` | módulo 2 (L12032) | módulo 1 | función/objeto |
-| `_numerosDeMapaCompletados` | módulo 2 (L12508) | clásico 8 | función/objeto |
-| `_reenviarProgressBarAHijo3` | módulo 2 (L9543) | módulo 1 | función/objeto |
-| `_retoBtnEncendido` | módulo 2 (L10707) | módulo 1 | función/objeto |
-| `_sincronizarAvanzar` | módulo 2 (L10839) | módulo 1 | función/objeto |
-| `_sincronizarRetoBtn` | módulo 2 (L10769) | módulo 1 | función/objeto |
-| `_vaciarRetoActual` | módulo 2 (L10731) | módulo 1 | función/objeto |
-| `_vv_afterHijoListo` | módulo 2 (L8788) | módulo 1 | función/objeto |
-| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9538) | módulo 1 | función/objeto |
-| `AVENTURA_PARADAS` | módulo 2 (L8920) | módulo 1 | función/objeto |
-| `distribuirDatosAventura` | módulo 2 (L8961) | módulo 1 | función/objeto |
-| `mostrarModalTiempoAgotado` | módulo 2 (L12245) | módulo 1 | función/objeto |
-| `obtenerAudioIdActivoPadre` | módulo 2 (L9416) | módulo 1 | función/objeto |
-| `solicitarAudioAHijo3` | módulo 2 (L9408) | módulo 1 | función/objeto |
-| `mostrarHijo4` | módulo 3 (L13325) | módulo 2 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L13300) | clásico 12 | estado |
+| `_cerrarDesplegableAudioSiAbierto` | módulo 2 (L9595) | módulo 1 | función/objeto |
+| `_cerrarVentanaTemporizador` | módulo 2 (L12311) | módulo 1 | función/objeto |
+| `_decidirAvanzar` | módulo 2 (L10811) | módulo 1 | función/objeto |
+| `_estadoRescate` | módulo 2 (L13282) | clásico 7 | función/objeto |
+| `_etiquetasNumeroDeMapa` | módulo 2 (L12394) | clásico 8 | función/objeto |
+| `_hijosConCapaAbierta` | módulo 2 (L11380) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L12023) | módulo 1 | función/objeto |
+| `_numerosDeMapaCompletados` | módulo 2 (L12499) | clásico 8 | función/objeto |
+| `_reenviarProgressBarAHijo3` | módulo 2 (L9534) | módulo 1 | función/objeto |
+| `_retoBtnEncendido` | módulo 2 (L10698) | módulo 1 | función/objeto |
+| `_sincronizarAvanzar` | módulo 2 (L10830) | módulo 1 | función/objeto |
+| `_sincronizarRetoBtn` | módulo 2 (L10760) | módulo 1 | función/objeto |
+| `_vaciarRetoActual` | módulo 2 (L10722) | módulo 1 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L8779) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L9529) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L8911) | módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L8952) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L12236) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L9407) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L9399) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L13316) | módulo 2 | función/objeto |
 
 </details>
 

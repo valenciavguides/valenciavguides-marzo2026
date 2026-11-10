@@ -79,28 +79,32 @@ test.describe('PP — lo que decide cada sitio con el permiso (K-18)', () => {
     expect(r).toEqual({ error: 'Permisos de geolocalización denegados', vigilancias: 0, permisos: false });
   });
 
-  test('PP-13. Tras un «denegado»: fuera de Apple, cuando el permiso vuelve, el GPS se activa solo; en Apple no se vigila el permiso', async ({ page }) => {
+  /** El modo AVENTURA y la pantalla de sin señal con el código 1 (permiso denegado), como la deja `_watchPositionError`. */
+  const pantallaDePermisoDenegado = (page) => page.evaluate(() => {
+    globalThis.estado.modo = globalThis.estado.modo || {};
+    globalThis.estado.modo.actual = 'aventura';
+    if (globalThis.estadoPadre?.modo) globalThis.estadoPadre.modo.actual = 'aventura';
+    globalThis.showGpsSignalOverlay(1, 'User denied Geolocation');
+  });
+
+  // Un solo camino en todos los teléfonos, iPhone incluido (K-152, decisión del usuario: «debería ser homogéneo, 1 solo
+  // camino»): la pantalla vigila el permiso, y su botón vuelve a pedir el GPS. Con el código anterior, en iphone12 caen
+  // PP-13 (no se vigilaba el permiso en iPhone) y PP-15 (el botón esperaba a que la página volviera a primer plano).
+  test('PP-13. Tras un «denegado», cuando el permiso vuelve, el GPS se activa solo, en todos los teléfonos', async ({ page }) => {
     await permisoFalso(page, 'denied');
-    // La misma regla que el padre (showGpsSignalOverlay): en iPhone, iPad e iPod no se vigila el permiso, lo vuelve a pedir
-    // el botón de la pantalla de sin señal. Cada navegador comprueba la rama que le toca.
-    const esApple = await page.evaluate(() => /iPad|iPhone|iPod/.test(navigator.userAgent));
-    await page.evaluate(() => {
-      globalThis.estado.modo = globalThis.estado.modo || {};
-      globalThis.estado.modo.actual = 'aventura';
-      if (globalThis.estadoPadre?.modo) globalThis.estadoPadre.modo.actual = 'aventura';
-      globalThis.showGpsSignalOverlay(1, 'User denied Geolocation');
-    });
-    if (esApple) {
-      // Fuera de Apple la vigilancia se arma en el acto, dentro de showGpsSignalOverlay y antes de consultar el permiso:
-      // mirarla justo después basta.
-      expect(await page.evaluate(() => ({ vigilante: globalThis.__vv_gps_perm_watcher === true, vigilancias: globalThis.__vigilancias.length })),
-        'en Apple, tras un «denegado» no se arma la vigilancia del permiso ni se abre ninguna del GPS').toEqual({ vigilante: false, vigilancias: 0 });
-      return;
-    }
-    await expect.poll(() => page.evaluate(() => globalThis.__permiso.oyentes.length)).toBe(1);
+    await pantallaDePermisoDenegado(page);
+    await expect.poll(() => page.evaluate(() => globalThis.__permiso.oyentes.length), { message: 'la pantalla vigila el permiso' }).toBe(1);
     await page.evaluate(() => { globalThis.__permiso.state = 'granted'; globalThis.__permiso.oyentes.forEach((f) => f()); });
     await expect.poll(() => page.evaluate(() => globalThis.__vigilancias.length)).toBe(1);
     expect(await page.evaluate(() => ({ oyentes: globalThis.__permiso.oyentes.length, vigilante: globalThis.__vv_gps_perm_watcher }))).toEqual({ oyentes: 0, vigilante: false });
+  });
+
+  test('PP-15. Con el permiso denegado, el botón de la pantalla de sin señal vuelve a pedir el GPS, en todos los teléfonos', async ({ page }) => {
+    await permisoFalso(page, 'denied');
+    await pantallaDePermisoDenegado(page);
+    // El usuario vuelve a permitirlo en los ajustes del teléfono y pulsa el botón, sin que el permiso avise de nada.
+    await page.evaluate(() => { globalThis.__permiso.state = 'granted'; document.getElementById('gps-signal-action').click(); });
+    await expect.poll(() => page.evaluate(() => globalThis.__vigilancias.length), { message: 'el botón llama a activarGPS(), que abre la vigilancia' }).toBe(1);
   });
 
   test('PP-14. El diagnóstico del GPS cuenta el estado del permiso', async ({ page }) => {
