@@ -4443,6 +4443,16 @@ Origen: la prueba en vivo del usuario en su Android, con `a4cf5a5` publicada (`j
 - **Relacionado.** La nota de la lectura única del número de mapa (arriba, en las decisiones del 2026-11-09).
 - **Decidido (2026-11-10; el usuario: «Dejarlas como guía, con el control vigilando»): *B*.** Las doce copias se quedan como referencia, y el verificador sigue comprobando que coinciden con las coordenadas. Los números de las paradas, el usuario: «yo sé que están bien»; no se tocan, ni sus comentarios.
 
+##### K-196 — El tope de acercamiento de un mapa con teselas de OpenStreetMap está en dos sitios con dos valores: el mapa moderno para en el 19, y el mapa completo deja llegar al 21, donde se queda gris — ✅ (medido en chromium, firefox e iphone12)
+
+- **Cómo salió.** Al comprobar qué puede fallar en las teselas del mapa completo, por la respuesta del usuario sobre su orden (2026-11-09: «lo dejamos como está pero comprueba que no habrá posibilidad de error»).
+- **Dónde.** `mapa-completo.html:163` crea el mapa con `maxZoom: 21`, y su capa de OpenStreetMap (`:166-169`) lleva `maxZoom: 19` y ningún `maxNativeZoom`: Leaflet no la enseña por encima del 19. El mapa moderno del padre decide lo mismo de otra forma: `_MAPA_MAX_ZOOM = 19` (`codigo-padre.html:2875`), con su porqué al lado (`:2871-2874`: el Callejero no tiene teselas más allá del 19, y el mapa se quedaría en blanco).
+- **Medido** (sonda desechable, scratchpad `zz-sonda-mapa-completo-zoom.spec.js`, sesión a656a0e0: el mapa completo en el marco de pruebas, las teselas de OpenStreetMap servidas con una imagen local y el «+» de Leaflet pulsado nivel a nivel). En los tres motores: del 15 al 19, teselas en la página en cada nivel (de 18 a 24 en el escritorio, de 6 a 12 en iphone12); en el 20 y en el 21, ninguna, y el «+» sigue activo hasta el 21; la captura del 21 es gris entera. Con la aventura cargada quedarían encima la línea de la ruta y los números de los monumentos, sin calles debajo.
+- **El orden por el que preguntó el usuario** (el mapa pide las teselas de su vista por defecto, `[39.476, -0.375]` a 15, antes de encuadrar la ruta): no da error. Son las de una pantalla (24 en el escritorio y 6 en iphone12, medido), y al llegar `MAPA_COMPLETO.DATOS` el encuadre (`_reajustarVista`, `:171-174`) pide las que falten. Leído: una tesela que no llega se queda gris, sin aviso ni error de la aplicación (`mapa-completo.html` no escucha `tileerror`); y si los datos llegan con el mapa oculto, `MAPA_COMPLETO.VISIBLE` vuelve a encuadrar al abrirlo (`:274-279`).
+- **Lo que no cuadra.** Una decisión, «hasta dónde se deja acercar un mapa cuyas teselas llegan al 19», con dos respuestas; la del mapa completo deja al usuario sin calles dos niveles.
+- **Pendiente: decisión** (cambio visible). *A)* el mapa completo con `maxZoom: 19`, como el moderno: el «+» para en el 19; *B)* dejar el 21 y que la capa estire las teselas del 19 (`maxNativeZoom: 19`): se ve, más borroso; *C)* dejarlo. Toca también la guía (§32.4 copia la creación del mapa).
+- **Relacionado.** El tope del mapa moderno (`_MAPA_MAX_ZOOM`, `codigo-padre.html:2875`).
+
 ### R2.3 Clases barridas sin hallazgo (➖), con su método
 
 Para que "no sale nada" no se confunda con "no se miró":
@@ -5200,6 +5210,7 @@ Cada una lleva su nota fechada dentro de la entrada; esta tabla las resume.
 | 188 | 2 | K-193 | reabrir el vídeo menos de 400 ms después de cerrarlo — **no es un problema (decisión del usuario, 2026-11-10: «no hay velocidad humana…»); se queda** | — | — | sí |
 | 189 | 2 | K-194 | el spec 164 (EQ-1) mide el cierre con el reloj de la página, o se deja — **hecha (2026-11-10, `98d3a94`, opción A del usuario): `apuntarCierre` y `esperarCierre`; control en chromium; verde en chromium e iphone12** | SPEC | — | sí |
 | 190 | 1 | K-195 | `numero_mapa` del padre: quitarlo de los doce idiomas o dejarlo como guía — **se queda como guía, con el verificador (decisión del usuario, 2026-11-10)** | — | — | sí |
+| 191 | 1 | K-196 | que el mapa completo no deje acercar más allá de sus teselas (el 19, como el moderno), o que las estire, o dejarlo | VISIBLE, GUÍA | — | decisión |
 | 94 | 1 | R2.11.8 | retirar `tests/flujo_bidireccional_exhaustivo.json`, sin lector — **hecha (2026-10-19, `f89554d`), con `tests/analyze_controllers_report.json`, que tampoco tiene lector** | — | — | sí |
 | 95 | 1 | K-34 (el generador) | que el generador de §37.2 no cuente como uso un nombre citado en un comentario — **hecha (2026-10-19, `0312bd2`)** | GUÍA (la tabla generada) | — | sí |
 | 96 | 1 | K-93 (resto) | fuera tres publicaciones en `globalThis` que nadie lee fuera de su bloque (`_avisarFalloCargaAppUnaVez`, `_obtenerCoordenadasP0Fallback` y `waitForMapLibreAndInitialize`) y su entrada de `eslint.config.js` — **hecha (2026-10-19, `e57a4e8`)** | GUÍA (§37.2) | — | sí |
