@@ -1536,25 +1536,8 @@
                 });
             });
 
-            // Controlador: NAVEGACION.CAMBIO_PARADA
-            registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, async (mensaje) => {
-                try {
-                    const datos = mensaje.datos || {};
-                    const padreId = datos.padreId || datos.padreid || null;
-                    const paradaId = datos.paradaId || datos.parada_id || null;
-                    logger.info(`[hijo4][NAVEGACION.CAMBIO_PARADA] recibido: padreId=${padreId}, paradaId=${paradaId}, retoId=${datos.retoId}`);
-                    // El reto de la parada no se da por abierto aquí: `estado.retoActualId` es el reto que el usuario tiene
-                    // abierto, y lo fija mostrarReto().
-                    // Send confirmation back to parent
-                    await enviarMensaje({
-                        destino: 'padre',
-                        tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
-                        datos: { paradaId: paradaId || null, parada_id: paradaId || null, padreId: padreId || null, padreid: padreId || null, timestamp: Date.now() }
-                    });
-                } catch (e) {
-                    logger.warn('[hijo4] Error manejando CAMBIO_PARADA', e);
-                }
-            });
+            // NAVEGACION.CAMBIO_PARADA no llega aquí: el padre no se lo manda (docs/estudio-caminos.md, K-197). El reto abierto
+            // lo fija mostrarReto() al recibir RETO.MOSTRAR.
 
 
             // Un solo camino (paso 8.10 de la lavadora): el padre manda SISTEMA.NACK/ERROR

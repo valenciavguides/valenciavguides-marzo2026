@@ -10832,7 +10832,7 @@ await _comprobarReanudacionAventura(logPrefix);
             try { persistProgressState(); } catch (e) { (globalThis.logger || console).warn('[CAMBIO_PARADA] persistProgressState failed', e); }
         }
 
-        async function _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, mensaje, estado, logPrefix }) {
+        async function _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, mensaje, logPrefix }) {
             const notificaciones = [];
             if (mensaje.origen !== 'hijo5') {
                 notificaciones.push(
@@ -10888,28 +10888,8 @@ await _comprobarReanudacionAventura(logPrefix);
                     return null;
                 })
             );
-            if (estado.hijosInicializados?.has('hijo4')) {
-                notificaciones.push(
-                    Promise.resolve(enviarMensaje_S2({
-                        tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                        destino: 'hijo4',
-                        datos: {
-                            paradaId: datosNotificacion.paradaId,
-                            parada_id: paradaIdBase,
-                            padreId: padreIdNorm,
-                            padreid: padreIdNorm,
-                            tipo: parada.tipo,
-                            retoId: parada.reto_id ?? null,
-                            retoIds: obtenerRetosIds(parada),
-                            timestamp: Date.now(),
-                            origenCambio: mensaje.origen
-                        }
-                    })).catch(error => {
-                        (globalThis.logger || console).warn(`${logPrefix} Error notificando a hijo4:`, error);
-                        return null;
-                    })
-                );
-            }
+            // hijo4 no recibe el cambio de parada: no lo usa. El reto le llega con RETO.MOSTRAR, y su botón, con RETO.HABILITAR
+            // y RETO.ESTADO_CASA (docs/estudio-caminos.md, K-197).
             await Promise.all(notificaciones);
         }
 
@@ -11047,7 +11027,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     origenCambio: mensaje.origen
                 };
 
-                await _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, mensaje, estado, logPrefix });
+                await _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, mensaje, logPrefix });
 
                 // El estado del reto pasa a ser el del elemento actual (si ya lo era, no se toca) y
                 // el botón de retos de hijo3 queda como le toca: lo decide un solo sitio.

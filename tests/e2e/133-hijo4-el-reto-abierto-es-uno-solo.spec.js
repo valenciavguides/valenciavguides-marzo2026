@@ -1,17 +1,19 @@
 /**
- * 133 — hijo4: «el reto abierto» es uno solo, y un cambio de parada no lo da por abierto
+ * 133 — hijo4: «el reto abierto» es uno solo, y solo lo abre un reto mostrado
  *
  * POR QUE EXISTE
  *
  * En hijo4, `estado.retoActualId` es el reto que el usuario tiene abierto: lo fija `mostrarReto()` (por `RETO.MOSTRAR`)
  * y lo borra `RETO.LIMPIAR_ESTADO`. Lo leen el botón de saltar y el cambio de modo, que no limpia la ventana del reto si
- * hay uno abierto y lo avisa («omitiendo limpieza»). `NAVEGACION.CAMBIO_PARADA` no lo toca: el reto de una parada no
+ * hay uno abierto y lo avisa («omitiendo limpieza»). hijo4 no atiende `NAVEGACION.CAMBIO_PARADA` (el padre no se lo
+ * manda: docs/estudio-caminos.md, K-197): el reto de una parada no
  * está abierto hasta que se muestra.
  *
  *   UR-1  Control: con un reto abierto, el cambio de modo no limpia y lo avisa.
- *   UR-2  Tras un CAMBIO_PARADA que nombra un reto, sin abrirlo, el cambio de modo limpia sin ese aviso.
+ *   UR-2  hijo4 no tiene handler de NAVEGACION.CAMBIO_PARADA, y sin reto abierto el cambio de modo limpia sin ese aviso.
  *
- * ROJO ANTES QUE VERDE: cuando CAMBIO_PARADA escribía el reto de la parada en `estado.retoActualId`, UR-2 veía el aviso.
+ * ROJO ANTES QUE VERDE: cuando CAMBIO_PARADA escribía el reto de la parada en `estado.retoActualId`, UR-2 veía el aviso;
+ * y con el handler de CAMBIO_PARADA que hijo4 tenía (solo lo anotaba y lo confirmaba), cae UR-2.
  */
 'use strict';
 
@@ -54,13 +56,12 @@ test.describe('UR — hijo4: el reto abierto es uno solo', () => {
     expect(await cambiarModo(page, consola, 'casa'), 'con el reto abierto, el cambio de modo lo avisa').toBe(true);
   });
 
-  test('UR-2. Un CAMBIO_PARADA que nombra un reto no lo da por abierto: el cambio de modo limpia sin aviso', async ({ page }) => {
+  test('UR-2. hijo4 no atiende NAVEGACION.CAMBIO_PARADA, y sin reto abierto el cambio de modo limpia sin aviso', async ({ page }) => {
     const consola = await arrancar(page);
-    await postear(page, {
-      tipo: 'NAVEGACION.CAMBIO_PARADA', origen: 'padre', destino: 'hijo4',
-      datos: { padreId: 'padre-P7', padreid: 'padre-P7', paradaId: 'Av1-P-7', parada_id: 'Av1-P-7', retoId: RETO.id },
-    });
-    await expect.poll(() => consola.some((t) => t.includes('NAVEGACION.CAMBIO_PARADA] recibido')), { timeout: 5_000 }).toBe(true);
+    // SISTEMA.NACK se registra después que CAMBIO_PARADA cuando hijo4 tenía ese handler: con él puesto, la ausencia es real.
+    await page.waitForFunction(() => globalThis.mensajeria?.tieneControlador?.('SISTEMA.NACK') === true, null, { timeout: 15_000 });
+    const conHandler = await page.evaluate(() => globalThis.mensajeria.tieneControlador('NAVEGACION.CAMBIO_PARADA') === true);
+    expect(conHandler, 'hijo4 no tiene handler de NAVEGACION.CAMBIO_PARADA').toBe(false);
     expect(await cambiarModo(page, consola, 'casa'), 'sin reto abierto no hay nada que proteger').toBe(false);
   });
 });
