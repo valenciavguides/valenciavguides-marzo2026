@@ -12,7 +12,7 @@
  * podían fundirse en uno sin cambiar el estado final; lo único que costaba el segundo mensaje
  * era una segunda pasada completa de `actualizarEstadoBotones()`/detección de llegada.
  *
- * Después el campo salió del todo: hijo2 lo guardaba y nadie lo leía (docs/estudio-caminos.md, K-80).
+ * Después el campo salió del todo: hijo2 lo guardaba y nadie lo leía (guía §10.15).
  *
  * AE-1  Camino real: una lectura GPS a ≤50m del destino activo produce UN SOLO
  *       NAVEGACION.ACTUALIZAR_ESTADO en hijo2, no dos, con la distancia de la lectura.

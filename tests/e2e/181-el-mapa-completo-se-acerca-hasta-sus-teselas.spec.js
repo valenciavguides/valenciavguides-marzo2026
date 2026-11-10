@@ -2,7 +2,7 @@
  * 181-el-mapa-completo-se-acerca-hasta-sus-teselas.spec.js
  *
  * El mapa completo se acerca hasta el último nivel que tiene teselas, el 19, el mismo tope que el mapa moderno
- * (`_MAPA_MAX_ZOOM`): más allá, su capa de OpenStreetMap no se dibuja y el mapa se queda gris (estudio K-196; el usuario:
+ * (`_MAPA_MAX_ZOOM`): más allá, su capa de OpenStreetMap no se dibuja y el mapa se queda gris (guía §32.4; el usuario:
  * «hagamos que pare también en ese punto, homogeneidad»). Y no tiene botones de zoom, como el mapa moderno y el antiguo
  * (decisión del usuario): se acerca con los dedos y con la rueda del ratón. `mapa-completo.html` en
  * `helpers/marco-vacio.html`, con Leaflet de verdad y las teselas servidas con una imagen local.

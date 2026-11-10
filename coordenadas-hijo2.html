@@ -351,14 +351,6 @@ const estadoComponente = {
     hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
 };
 
-// Tiempo de gracia antes de restringir vídeo/avanzar/audio/reto por franja de distancia
-// (ver verificarDistanciaYActualizarBotones) — "fuera" y "desviado" dan margen a un desvío
-// real (recado rápido, rodeo por obras); "lejos"/"perdido" no tienen gracia, a esa distancia
-// ya no es un desvío de la ruta sino un probable abandono o error. La ayuda (btn-ubicacion/
-// mapas) NUNCA espera esta gracia — se habilita al instante en cualquier franja, ver
-// docs/GUIA-COMPLETA.md §31.4.
-const _GRACIA_FUERA_DE_RANGO_MS = CONFIG.GPS.GRACIA_MS; // fuera 7 min, desviado 15 min, lejos y perdido al instante
-
 // Referencias DOM
 const elementosDOM = {
     btnAvanzar: document.getElementById('btn-avanzar'),
@@ -454,7 +446,7 @@ function _actualizarBotonUbicacion(elementosDOM, modo, retoActivo) {
 }
 
 // Habilita ubicación/mapas al instante, nada más detectarse fuera de rango real —
-// independiente de la gracia (ver _GRACIA_FUERA_DE_RANGO_MS): pedir ayuda no tiene
+// independiente de la gracia (ver CONFIG.GPS.GRACIA_MS): pedir ayuda no tiene
 // coste, así que no espera a que la franja termine de dar margen. Llamada desde
 // verificarDistanciaYActualizarBotones() en cada posición fuera de rango.
 function _habilitarAyudaFueraDeRango(logPrefix) {
@@ -691,7 +683,7 @@ function verificarDistanciaYActualizarBotones() {
     // enciende hasta llegar (K-185). En un tramo se va andando hacia la llegada, y la
     // gracia, que es para desvíos como unas obras, corre durante el camino.
     const esperaLaLlegada = !esTramo && estadoComponente._llegadaConfirmadaEn !== idParadaActual;
-    const gracia = esperaLaLlegada ? 0 : (_GRACIA_FUERA_DE_RANGO_MS[franja] ?? 0);
+    const gracia = esperaLaLlegada ? 0 : CONFIG.GPS.GRACIA_MS[franja];
     const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
     if (tiempoFuera >= gracia) {
         _procesarFueraDeRangoConfirmado(logPrefix, franja, distanciaParaRango);
@@ -928,16 +920,14 @@ function _aplicarDatosEstado(datos, logPrefix) {
 // el sitio (reproducido con datos reales de Av1-P-1: 20 lecturas alternando 15m/25m nunca
 // confirmaban la llegada con el diseño anterior). 2 de 4 conserva la misma protección
 // contra una lectura suelta sin depender de que el azar alinee dos lecturas consecutivas.
-const _VENTANA_LLEGADA = CONFIG.GPS.VENTANA_LLEGADA;
-const _CONFIRMACION_LLEGADA = CONFIG.GPS.CONFIRMACION_LLEGADA;
 function _confirmarPorVentana(ventana, dentro, idParada) {
     if (ventana.id !== idParada) {
         ventana.id = idParada;
         ventana.lecturas = [];
     }
     ventana.lecturas.push(dentro);
-    if (ventana.lecturas.length > _VENTANA_LLEGADA) ventana.lecturas.shift();
-    return ventana.lecturas.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
+    if (ventana.lecturas.length > CONFIG.GPS.VENTANA_LLEGADA) ventana.lecturas.shift();
+    return ventana.lecturas.filter(Boolean).length >= CONFIG.GPS.CONFIRMACION_LLEGADA;
 }
 
 async function _detectarLlegadaTramo(distanciaAlDestino, radioLlegada, recorridoSuficiente, idParada, logPrefix) {
@@ -971,21 +961,20 @@ async function _detectarLlegadaTramo(distanciaAlDestino, radioLlegada, recorrido
 }
 
 async function _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix) {
-    const RADIO_PARADA = CONFIG.GPS.RADIO_LLEGADA_M;
-    const dentroDeRadio = distanciaAlDestino <= RADIO_PARADA;
+    const dentroDeRadio = distanciaAlDestino <= CONFIG.GPS.RADIO_LLEGADA_M;
     const confirmada = _confirmarPorVentana(estadoComponente._ventanaLlegada, dentroDeRadio, idParada);
     if (dentroDeRadio && confirmada) {
         estadoComponente._llegadaConfirmadaEn = idParada;
         if (!estadoComponente._llegadaNotificada || estadoComponente._llegadaNotificada !== idParada) {
             estadoComponente._llegadaNotificada = idParada;
-            logger.info(`${logPrefix} 🎯 Llegada detectada a parada ${idParada} (${distanciaAlDestino.toFixed(1)}m ≤ ${RADIO_PARADA}m)`);
+            logger.info(`${logPrefix} 🎯 Llegada detectada a parada ${idParada} (${distanciaAlDestino.toFixed(1)}m ≤ ${CONFIG.GPS.RADIO_LLEGADA_M}m)`);
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
                 destino: 'padre',
                 datos: { paradaId: idParada, parada_id: idParada, distancia: distanciaAlDestino, tipoParada: 'parada', timestamp: Date.now() }
             }).catch(e => logger.warn(`${logPrefix} Error notificando llegada a parada:`, e.message));
         }
-    } else if (!dentroDeRadio && estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > RADIO_PARADA * CONFIG.GPS.MARGEN_SALIDA) {
+    } else if (!dentroDeRadio && estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > CONFIG.GPS.RADIO_LLEGADA_M * CONFIG.GPS.MARGEN_SALIDA) {
         estadoComponente._llegadaNotificada = null;
     }
 }

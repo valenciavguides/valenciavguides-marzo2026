@@ -5391,18 +5391,14 @@
             globalThis._gpsHistorial.push({ lat, lng, accuracy, timestamp: position.timestamp, recibidoEn: Date.now(), heading: position.coords.heading, speed: position.coords.speed });
             if (globalThis._gpsHistorial.length > 20) globalThis._gpsHistorial.shift();
 
-            // GPS ha vuelto: ocultar overlay de señal perdida (§30.2/§30.3)
+            // GPS ha vuelto: ocultar overlay de señal perdida (§31.2/§31.3)
             try { hideGpsSignalOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
             // La precisión no descarta la lectura aquí: en calles estrechas del centro
             // histórico se degrada constantemente, y descartarla congelaría a la vez el
-            // aviso a hijo2 y la flecha. Con precisión peor que 50 m, funciones-mapa.js no
+            // aviso a hijo2 y la flecha. Con precisión peor que CONFIG.GPS.PRECISION_MINIMA, funciones-mapa.js no
             // saca conclusiones de distancia (`lecturaFiable`), y la llegada pide dos de las
             // cuatro últimas lecturas dentro del radio.
-            if (accuracy > 50) {
-                (globalThis.logger || console).debug(`${logPrefix} Precisión GPS baja (${Math.round(accuracy)}m > 50m), se procesa igualmente`);
-            }
-
             est.gps.posicionUsuario = { lat, lng, accuracy, timestamp: position.timestamp };
             est.gps.ultimaUbicacion = { lat, lng, accuracy, timestamp: position.timestamp };
             est.gps.precision = accuracy;
@@ -5454,8 +5450,8 @@
          * TOLERANCIA AL GPS MALO. La precisión dejó de descartar lecturas en el flujo normal
          * (en calles estrechas se degrada constantemente), así que aquí llegan lecturas de
          * ±km. Bloquear con una sola sería cortarle la aventura a alguien legítimo bajo un
-         * edificio. Se exigen LECTURAS_PARA_BLOQUEAR seguidas fuera de rango, y las de
-         * precisión peor que PRECISION_MAXIMA_M ni se cuentan. Con el throttle de 3 minutos,
+         * edificio. Se exigen ZONA_LECTURAS_PARA_BLOQUEAR seguidas fuera de rango, y las de
+         * precisión peor que ZONA_PRECISION_MAXIMA_M ni se cuentan. Con el throttle de 3 minutos,
          * eso son ~9 minutos hasta bloquear: al pirata no le sirve de nada, al usuario real
          * no le arruina la visita.
          */
@@ -5469,21 +5465,18 @@
                 if (globalThis.__VV_5KM_BLOCKED === true) showGpsOutOfRangeOverlay();
 
                 const now = Date.now();
-                const THROTTLE_MS = globalThis.__vv_config.GPS.ZONA_ESPERA_MS;
+                const { ZONA_ESPERA_MS, ZONA_M, ZONA_PRECISION_MAXIMA_M, ZONA_LECTURAS_PARA_BLOQUEAR } = globalThis.__vv_config.GPS;
                 // La espera de 3 minutos es para no bloquear de más (tres lecturas fuera, espaciadas). Para levantar el
                 // bloqueo no hace falta: con él puesto se mira cada lectura, y la primera precisa dentro de los 5 km lo
                 // levanta; en esa misma lectura sale la pantalla de la zona en la que está (K-156, spec 178).
                 const conBloqueo = globalThis.__VV_5KM_BLOCKED === true;
-                if (!conBloqueo && globalThis.__VV_5KM_LAST_CHECK && (now - globalThis.__VV_5KM_LAST_CHECK) < THROTTLE_MS) return;
+                if (!conBloqueo && globalThis.__VV_5KM_LAST_CHECK && (now - globalThis.__VV_5KM_LAST_CHECK) < ZONA_ESPERA_MS) return;
                 globalThis.__VV_5KM_LAST_CHECK = now;
 
-                const LIMIT_M = globalThis.__vv_config.GPS.ZONA_M;
-                const PRECISION_MAXIMA_M = globalThis.__vv_config.GPS.ZONA_PRECISION_MAXIMA_M;
-                const LECTURAS_PARA_BLOQUEAR = globalThis.__vv_config.GPS.ZONA_LECTURAS_PARA_BLOQUEAR;
 
                 // Una lectura imprecisa no cuenta ni a favor ni en contra: se ignora entera.
-                if (typeof accuracy === 'number' && accuracy > PRECISION_MAXIMA_M) {
-                    (globalThis.logger || console).debug(`[PADRE][GPS][5KM] Lectura ignorada por precisión ±${Math.round(accuracy)}m (> ${PRECISION_MAXIMA_M}m)`);
+                if (typeof accuracy === 'number' && accuracy > ZONA_PRECISION_MAXIMA_M) {
+                    (globalThis.logger || console).debug(`[PADRE][GPS][5KM] Lectura ignorada por precisión ±${Math.round(accuracy)}m (> ${ZONA_PRECISION_MAXIMA_M}m)`);
                     return;
                 }
 
@@ -5505,9 +5498,9 @@
                     for (const p of puntos) {
                         const d = calcularDistancia(lat, lng, p.lat, p.lng);
                         if (d < minDistM) minDistM = d;
-                        if (minDistM < LIMIT_M) break;
+                        if (minDistM < ZONA_M) break;
                     }
-                    if (minDistM < LIMIT_M) break;
+                    if (minDistM < ZONA_M) break;
                 }
 
                 if (!Number.isFinite(minDistM)) {
@@ -5515,11 +5508,11 @@
                     return;
                 }
 
-                const fuera = minDistM > LIMIT_M;
+                const fuera = minDistM > ZONA_M;
                 const wasBlocked = globalThis.__VV_5KM_BLOCKED === true;
                 globalThis.__VV_5KM_SEGUIDAS = fuera ? (globalThis.__VV_5KM_SEGUIDAS || 0) + 1 : 0;
 
-                if (fuera && globalThis.__VV_5KM_SEGUIDAS >= LECTURAS_PARA_BLOQUEAR) {
+                if (fuera && globalThis.__VV_5KM_SEGUIDAS >= ZONA_LECTURAS_PARA_BLOQUEAR) {
                     if (!wasBlocked) {
                         (globalThis.logger || console).warn(`[PADRE][GPS][5KM] Usuario a ${Math.round(minDistM / 1000)}km de la ruta tras ${globalThis.__VV_5KM_SEGUIDAS} lecturas — bloqueando aventura`);
                         globalThis.__VV_5KM_BLOCKED = true;
@@ -9026,7 +9019,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const retosIds = obtenerRetosIds(elemento);
                 estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), ttlMs };
                 // La ficha es del padre y no se anuncia a los hijos: ninguno la necesita, cada uno recibe lo que le toca por
-                // su propio mensaje. El aviso que se les mandaba no tenía efecto en ninguno (docs/estudio-caminos.md, K-80).
+                // su propio mensaje. El aviso que se les mandaba no tenía efecto en ninguno (guía §10.15).
             }
             return estado.pendingCompleciones[key];
         }
@@ -10887,7 +10880,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 })
             );
             // hijo4 no recibe el cambio de parada: no lo usa. El reto le llega con RETO.MOSTRAR, y su botón, con RETO.HABILITAR
-            // y RETO.ESTADO_CASA (docs/estudio-caminos.md, K-197).
+            // y RETO.ESTADO_CASA (spec 182).
             await Promise.all(notificaciones);
         }
 

@@ -6,7 +6,7 @@
  * En hijo4, `estado.retoActualId` es el reto que el usuario tiene abierto: lo fija `mostrarReto()` (por `RETO.MOSTRAR`)
  * y lo borra `RETO.LIMPIAR_ESTADO`. Lo leen el botón de saltar y el cambio de modo, que no limpia la ventana del reto si
  * hay uno abierto y lo avisa («omitiendo limpieza»). hijo4 no atiende `NAVEGACION.CAMBIO_PARADA` (el padre no se lo
- * manda: docs/estudio-caminos.md, K-197): el reto de una parada no
+ * manda: spec 182): el reto de una parada no
  * está abierto hasta que se muestra.
  *
  *   UR-1  Control: con un reto abierto, el cambio de modo no limpia y lo avisa.

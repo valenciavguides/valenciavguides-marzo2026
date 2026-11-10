@@ -5,7 +5,7 @@
  *
  * hijo4 recibía `NAVEGACION.CAMBIO_PARADA` en cada activación de un elemento, y solo lo anotaba en el log y contestaba
  * `CAMBIO_PARADA_CONFIRMADO`, que el padre solo anota: lo único que guardaba de él, `estado.padreIdActual`, lo leía el aviso
- * de la ficha, retirado en el paso 1 de K-197 (docs/estudio-caminos.md). El reto le llega con `RETO.MOSTRAR`, y su botón,
+ * de la ficha, que ya no existe (guía §10.15). El reto le llega con `RETO.MOSTRAR`, y su botón,
  * con `RETO.HABILITAR` y `RETO.ESTADO_CASA`. Decisión del usuario: «sí».
  *
  *   CP-1  Al activar un elemento por su camino real (`NAVEGACION.CAMBIO_PARADA` despachado en el padre), hijo4 no recibe

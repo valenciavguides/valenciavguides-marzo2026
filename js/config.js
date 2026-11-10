@@ -38,7 +38,7 @@ export const CONFIG = {
     GPS: {
         // Todos los números con los que se decide algo por la distancia o por la lectura del GPS. Los leen el mapa
         // (js/funciones-mapa.js), hijo2 (coordenadas-hijo2.html) y el padre (codigo-padre.html), de aquí y solo de aquí
-        // (docs/estudio-caminos.md, K-197, paso 2; spec 183).
+        // (guía, «Configuración del GPS»; spec 183).
         /** Precisión mínima aceptable (metros): con un círculo de error mayor, ninguna conclusión de distancia es fiable. */
         PRECISION_MINIMA: 50,
         /** Radio de llegada (metros) a una parada, al punto de salida y al final de un tramo: el del círculo naranja. */
@@ -54,7 +54,10 @@ export const CONFIG = {
          *  más allá, «perdido». */
         LEJOS_M: 150,
         PERDIDO_M: 2000,
-        /** La gracia de cada franja antes de restringir (milisegundos). */
+        /** La gracia de cada franja antes de restringir el vídeo, «avanzar», el audio y el reto (milisegundos). «fuera» y
+         *  «desviado» dan margen a un desvío de verdad (un recado, un rodeo por obras); «lejos» y «perdido» no tienen: a esa
+         *  distancia ya no es un desvío sino un abandono o un error. La ayuda (ubicación y mapas) no espera la gracia: se
+         *  habilita al instante, en cualquier franja (guía §31.4). */
         GRACIA_MS: { fuera: 7 * 60 * 1000, desviado: 15 * 60 * 1000, lejos: 0, perdido: 0 },
         /** Una llegada, o una vuelta a rango, se confirma con CONFIRMACION_LLEGADA lecturas dentro entre las últimas
          *  VENTANA_LLEGADA. */
@@ -64,6 +67,12 @@ export const CONFIG = {
         MARGEN_SALIDA: 1.5,
         /** Parte de la longitud real de un tramo que hay que recorrer antes de poder llegar a su final. */
         RECORRIDO_MINIMO_TRAMO: 0.4,
+        /** El recorrido de un tramo no cuenta un paso menor que el ruido de la lectura: el mayor de RECORRIDO_PASO_MINIMO_M y
+         *  su precisión por RECORRIDO_FACTOR_PRECISION (nunca más que lo que el tramo exige). Un salto de más de
+         *  RECORRIDO_SALTO_MAXIMO_M no se cuenta: es imposible andando, y la referencia se mueve hasta él (metros). */
+        RECORRIDO_PASO_MINIMO_M: 10,
+        RECORRIDO_FACTOR_PRECISION: 1.5,
+        RECORRIDO_SALTO_MAXIMO_M: 150,
         /** El bloqueo por lejanía: a más de ZONA_M de toda la ruta, con ZONA_LECTURAS_PARA_BLOQUEAR lecturas seguidas de
          *  precisión no peor que ZONA_PRECISION_MAXIMA_M, comprobadas cada ZONA_ESPERA_MS mientras no hay bloqueo. */
         ZONA_M: 5000,

@@ -5,8 +5,8 @@
  *
  * La ficha de cada elemento (`ensurePending`, la llegada, el audio y el reto) es del padre. Se les anunciaba a hijo2 e hijo4
  * con `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }`, y no tenía efecto en ninguno: hijo2 lo comparaba con otro
- * identificador y no casó en ninguno de los 110 del recorrido medido, e hijo4 solo lo apuntaba (docs/estudio-caminos.md,
- * K-80). Antes, el paso 8.5 de la lavadora había quitado los otros dos usos de ese tipo (al terminar el arranque y a hijo3).
+ * identificador y no casó en ninguno de los 110 del recorrido medido, e hijo4 solo lo apuntaba (guía §10.15).
+ * Antes, el paso 8.5 de la lavadora había quitado los otros dos usos de ese tipo (al terminar el arranque y a hijo3).
  * Con el aviso fuera, el tipo no lo manda nadie ni lo escucha nadie, y salió de `TIPOS_MENSAJE`.
  *
  *   NO-1  Al terminar el arranque, ningún hijo recibe `SISTEMA.NOTIFICACION`.

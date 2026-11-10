@@ -52,18 +52,6 @@ function _getLatLng(obj) {
 }
 
 /**
- * Calcula la tolerancia GPS para un elemento (parada o tramo)
- * Paradas: 50m fijos
- * Tramos: distancia máxima entre waypoints consecutivos + 20m de buffer
- * @param {Object} elemento - Elemento actual (parada o tramo)
- * @returns {number} Tolerancia en metros
- */
-// Radio de llegada a una parada o inicio, en metros: el de CONFIG.GPS (js/config.js), la misma tabla que lee RADIO_PARADA en
-// _detectarLlegadaParada() (coordenadas-hijo2.html): los dos sensores de llegada miden con el
-// mismo número.
-const RADIO_LLEGADA_PARADA_M = CONFIG.GPS.RADIO_LLEGADA_M;
-
-/**
  * Radio con el que se decide "ha llegado", en metros. SIEMPRE 15, también en tramos.
  *
  * POR QUÉ ES UNA FUNCIÓN APARTE DE calcularToleranciaGPS()
@@ -84,17 +72,18 @@ const RADIO_LLEGADA_PARADA_M = CONFIG.GPS.RADIO_LLEGADA_M;
  * envía a hijo2 para los botones y el aviso de fuera de rango. Un número, un trabajo.
  */
 function radioLlegada() {
-    return RADIO_LLEGADA_PARADA_M;
+    return CONFIG.GPS.RADIO_LLEGADA_M;
 }
 
+/**
+ * La tolerancia de un elemento para sus botones y su fuera de rango, en metros: en una parada o en el inicio, el radio de
+ * llegada; en un tramo, la mayor distancia entre dos waypoints seguidos más CONFIG.GPS.TOLERANCIA_TRAMO_MARGEN_M, y nunca
+ * menos de CONFIG.GPS.TOLERANCIA_TRAMO_MINIMA_M. Su única llamada (procesarPosicionGPSParaAventura) ya ha comprobado
+ * que hay elemento.
+ */
 function calcularToleranciaGPS(elemento) {
-    if (!elemento) {
-        logger.warn('⚠️ calcularToleranciaGPS: elemento no proporcionado, usando tolerancia por defecto 50m');
-        return 50;
-    }
-
     // Paradas e inicios: el MISMO radio que usa _detectarLlegadaParada() en hijo2
-    // (RADIO_PARADA). Los dos sensores de llegada tienen que medir lo mismo.
+    // (CONFIG.GPS.RADIO_LLEGADA_M). Los dos sensores de llegada tienen que medir lo mismo.
     //
     // POR QUÉ CAMBIÓ
     //
@@ -114,8 +103,8 @@ function calcularToleranciaGPS(elemento) {
     // permisivo, en d96f44c; su comentario decía que ese 50 era "el mismo criterio que la
     // tolerancia fija de parada". Se bajó la copia y se dejó el original: esto lo termina.
     if (elemento.tipo !== 'tramo') {
-        logger.debug(`📏 Tolerancia GPS para parada "${elemento.id}": ${RADIO_LLEGADA_PARADA_M}m`);
-        return RADIO_LLEGADA_PARADA_M;
+        logger.debug(`📏 Tolerancia GPS para parada "${elemento.id}": ${radioLlegada()}m`);
+        return CONFIG.GPS.RADIO_LLEGADA_M;
     }
 
     // Para tramos: distancia máxima entre waypoints consecutivos + 20m buffer.
@@ -285,7 +274,7 @@ function _resetDistanciaRecorridaSiNuevoTramo(tramoId) {
  * Exigiendo que el alejamiento se mantenga en la lectura siguiente, cae a cero, y andando
  * solo cuesta unos segundos más (43→45 s con ±5 m; 38→46 s con ±20 m).
  *
- * El techo de SALTO_MAXIMO_PLAUSIBLE se conserva por su motivo original: evita que un
+ * El techo de CONFIG.GPS.RECORRIDO_SALTO_MAXIMO_M se conserva por su motivo original: evita que un
  * único glitch de GPS complete el requisito de un tirón, sin penalizar tramos en
  * bici/patinete con huecos de lectura más largos de lo normal.
  *
@@ -294,7 +283,6 @@ function _resetDistanciaRecorridaSiNuevoTramo(tramoId) {
  * @param {number} [accuracy] Radio de precisión de la lectura, en metros
  */
 function _acumularDistanciaRecorrida(lat, lng, accuracy, distanciaExigida) {
-    const SALTO_MAXIMO_PLAUSIBLE = 150;
 
     if (!estadoMapa._ultimaPosParaRecorrido) {
         estadoMapa._ultimaPosParaRecorrido = { lat, lng };
@@ -320,13 +308,13 @@ function _acumularDistanciaRecorrida(lat, lng, accuracy, distanciaExigida) {
     // quieto no completa". Pero ahí esa protección no puede existir — con ±15 m de error,
     // andar 12 m y no moverse son indistinguibles para el GPS; es física, no código. Y
     // estar dentro del radio de llegada de un tramo de 12 m significa estar en el sitio.
-    const umbralBase = Math.max(10, (typeof accuracy === 'number' ? accuracy : 0) * 1.5);
+    const umbralBase = Math.max(CONFIG.GPS.RECORRIDO_PASO_MINIMO_M, (typeof accuracy === 'number' ? accuracy : 0) * CONFIG.GPS.RECORRIDO_FACTOR_PRECISION);
     const umbralRuido = (typeof distanciaExigida === 'number' && distanciaExigida > 0)
         ? Math.min(umbralBase, distanciaExigida)
         : umbralBase;
-    const plausible = salto >= umbralRuido && salto <= SALTO_MAXIMO_PLAUSIBLE;
+    const plausible = salto >= umbralRuido && salto <= CONFIG.GPS.RECORRIDO_SALTO_MAXIMO_M;
 
-    if (salto > SALTO_MAXIMO_PLAUSIBLE) {
+    if (salto > CONFIG.GPS.RECORRIDO_SALTO_MAXIMO_M) {
         // Salto imposible andando: no cuenta, pero la referencia SÍ se re-ancla aquí.
         //
         // Sin esto, anclar la referencia y moverla solo al contar deja un agujero: un hueco
@@ -2988,16 +2976,14 @@ async function procesarPosicionGPSParaAventura(posicion) {
             logger.debug(`${logPrefix} Precisión ±${Math.round(accuracy)} m peor que ${CONFIG.GPS.PRECISION_MINIMA} m: la lectura no cuenta para la llegada`);
             return;
         }
-        const _VENTANA_LLEGADA = CONFIG.GPS.VENTANA_LLEGADA;
-        const _CONFIRMACION_LLEGADA = CONFIG.GPS.CONFIRMACION_LLEGADA;
         if (estadoMapa._llegadaCandidataId !== derivedParadaId) {
             estadoMapa._llegadaCandidataId = derivedParadaId;
             estadoMapa._llegadaVentana = [];
         }
         if (!Array.isArray(estadoMapa._llegadaVentana)) estadoMapa._llegadaVentana = [];
         estadoMapa._llegadaVentana.push(llegadaDetectada);
-        if (estadoMapa._llegadaVentana.length > _VENTANA_LLEGADA) estadoMapa._llegadaVentana.shift();
-        const _confirmadaPorVentana = estadoMapa._llegadaVentana.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
+        if (estadoMapa._llegadaVentana.length > CONFIG.GPS.VENTANA_LLEGADA) estadoMapa._llegadaVentana.shift();
+        const _confirmadaPorVentana = estadoMapa._llegadaVentana.filter(Boolean).length >= CONFIG.GPS.CONFIRMACION_LLEGADA;
 
         if (llegadaDetectada && _confirmadaPorVentana) {
             if (estadoMapa.modo === MODOS.AVENTURA) _mostrarCartelLlegadaInicioUnaVez(siguienteParada, logPrefix);

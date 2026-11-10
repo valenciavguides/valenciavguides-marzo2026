@@ -4,8 +4,8 @@
  * POR QUE EXISTE
  *
  * El radio de llegada, las franjas de distancia, las gracias, la ventana de dos de cuatro, el margen de salida y los de la
- * zona de 5 km estaban escritos a mano en el mapa, en hijo2 y en el padre, algunos dos o tres veces (docs/estudio-caminos.md,
- * K-197, paso 2). Ahora los tres los leen de la tabla. El spec mide las fronteras por el camino real (lecturas por el mapa,
+ * zona de 5 km estaban escritos a mano en el mapa, en hijo2 y en el padre, algunos dos o tres veces. Ahora los tres los
+ * leen de la tabla (guía, «Configuración del GPS»). El spec mide las fronteras por el camino real (lecturas por el mapa,
  * que hijo2 juzga y le cuenta al padre), a un metro de cada lado: pasa con los números de hoy, antes y después de llevarlos
  * a la tabla, y cae si la tabla se cambia (control de mutación, a mano: con LEJOS_M en 160, cae BF-1 en los 151 m).
  *
