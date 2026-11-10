@@ -10163,7 +10163,7 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.RESTRINGIDO][${mensaje?.origen || 'desconocido'}]`;
 
             try {
-                const { distancia, rangoMaximo, idParada } = mensaje.datos || {};
+                const { distancia, franja, rangoMaximo, idParada } = mensaje.datos || {};
                 if (typeof distancia !== 'number') return;
                 // La distancia es a un elemento: la de uno que ya no es el actual no se enseña (hijo2 la mide justo antes
                 // de recibir el cambio de elemento y llega después; docs/estudio-caminos.md, K-74).
@@ -10172,15 +10172,13 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                if (distancia > globalThis.__vv_config.GPS.PERDIDO_M) {
-                    showFotoPerdidoOverlay(distancia);
-                } else if (distancia > globalThis.__vv_config.GPS.LEJOS_M) {
-                    showFotoLejosOverlay(distancia);
-                } else if (distancia > globalThis.__vv_config.GPS.CERCA_M) {
-                    showFotoDesviadoOverlay(distancia);
-                } else {
-                    showFotoFueraRangoOverlay(distancia, rangoMaximo);
-                }
+                // La franja la decide hijo2, el único que mide el rango; aquí solo se elige su pantalla, y la distancia se
+                // enseña (guía §31.4; spec 184).
+                if (franja === 'perdido') showFotoPerdidoOverlay(distancia);
+                else if (franja === 'lejos') showFotoLejosOverlay(distancia);
+                else if (franja === 'desviado') showFotoDesviadoOverlay(distancia);
+                else if (franja === 'fuera') showFotoFueraRangoOverlay(distancia, rangoMaximo);
+                else (globalThis.logger || console).error(`${logPrefix} GPS.RESTRINGIDO sin una franja conocida («${franja}»): no se enseña ninguna pantalla`);
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando GPS restringido:`, error);
             }

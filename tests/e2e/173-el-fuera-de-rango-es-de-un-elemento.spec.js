@@ -108,12 +108,12 @@ test.describe('FR — El fuera de rango es de un elemento', () => {
 
   test('FR-3. El padre no apunta el fuera de rango ni enseña la distancia de un elemento que ya no es el actual', async ({ page }) => {
     expect((await activar(page, PARADA.id))?.exito).toBe(true);
-    await desdeHijo2(page, 'NAVEGACION.GPS.RESTRINGIDO', { idParada: INICIO.id, distancia: 100, rangoMaximo: 15, timestampSalioDeRango: Date.now() });
+    await desdeHijo2(page, 'NAVEGACION.GPS.RESTRINGIDO', { idParada: INICIO.id, distancia: 100, franja: 'desviado', rangoMaximo: 15, timestampSalioDeRango: Date.now() });
     await desdeHijo2(page, 'NAVEGACION.USUARIO_FUERA_RANGO', { distancia: 100, franja: 'desviado', elementoMasCercano: INICIO.id, timestamp: Date.now() });
     expect(await padre(page), 'los avisos del inicio no valen para la parada 1').toEqual({ fueraDeRango: false, de: null, avanzar: 'elemento_sin_completar', pantallaDesviado: false });
 
     // Controles: los mismos avisos del elemento actual sí se aplican.
-    await desdeHijo2(page, 'NAVEGACION.GPS.RESTRINGIDO', { idParada: PARADA.id, distancia: 100, rangoMaximo: 15, timestampSalioDeRango: Date.now() });
+    await desdeHijo2(page, 'NAVEGACION.GPS.RESTRINGIDO', { idParada: PARADA.id, distancia: 100, franja: 'desviado', rangoMaximo: 15, timestampSalioDeRango: Date.now() });
     await desdeHijo2(page, 'NAVEGACION.USUARIO_FUERA_RANGO', { distancia: 100, franja: 'desviado', elementoMasCercano: PARADA.id, timestamp: Date.now() });
     expect(await padre(page)).toEqual({ fueraDeRango: true, de: PARADA.id, avanzar: 'fuera_de_rango', pantallaDesviado: true });
   });

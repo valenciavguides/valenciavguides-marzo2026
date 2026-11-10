@@ -611,13 +611,13 @@ function _procesarFueraDeRangoConfirmado(logPrefix, franja, distanciaParaRango) 
 /**
  * Verifica si el usuario está dentro/fuera del rango real de la parada/tramo actual
  * (15m parada / toleranciaGPS tramo) y actualiza
- * el botón de ubicación. Fuera de ese rango, informa al padre de la distancia real
- * en cada posición (GPS.RESTRINGIDO) para que decida qué pantalla de aviso mostrar
- * (§30 de la guía) — las 4 franjas (fuera/desviado/lejos/perdido) habilitan ubicación
+ * el botón de ubicación. Fuera de ese rango, decide la franja (fuera/desviado/lejos/perdido)
+ * y se la manda al padre con la distancia real en cada posición (GPS.RESTRINGIDO): el padre
+ * enseña la pantalla de esa franja (§31.4 de la guía). Las 4 franjas habilitan ubicación
  * al instante: es el usuario quien decide cuándo pulsarla, no un umbral de tiempo
  * calculado por la app. Lo que SÍ espera un tiempo de gracia (7 min "fuera", 15 min
  * "desviado"; instantáneo en "lejos"/"perdido") es la RESTRICCIÓN de vídeo/avanzar/
- * audio/reto — ver _GRACIA_FUERA_DE_RANGO_MS.
+ * audio/reto — ver CONFIG.GPS.GRACIA_MS.
  * Solo se ejecuta en modo aventura.
  */
 function verificarDistanciaYActualizarBotones() {
@@ -664,21 +664,22 @@ function verificarDistanciaYActualizarBotones() {
         logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango real (${rangoMaximo}m) de ${idParadaActual}`);
     }
 
-    // Informar al padre de la distancia real en cada posición fuera de rango — mantiene
-    // el número visible en pantalla actualizado y decide qué pantalla mostrar (§30).
-    if (idParadaActual) {
-        enviarMensaje({
-            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
-            destino: 'padre',
-            datos: { idParada: idParadaActual, distancia: distanciaParaRango, rangoMaximo, timestampSalioDeRango: estadoComponente.timestampSalioDeRango }
-        }).catch(e => logger.debug(`${logPrefix} Error notificando GPS restringido:`, e.message));
-    }
-
+    // La franja la decide hijo2, y solo hijo2: el padre enseña la pantalla de la que le llega, sin volver a calcularla (spec 184).
     let franja;
     if (distanciaParaRango > CONFIG.GPS.PERDIDO_M) franja = 'perdido';
     else if (distanciaParaRango > CONFIG.GPS.LEJOS_M) franja = 'lejos';
     else if (distanciaParaRango > CONFIG.GPS.CERCA_M) franja = 'desviado';
     else franja = 'fuera';
+
+    // Informar al padre de la distancia real y de su franja en cada posición fuera de rango: con
+    // ellas mantiene el número visible actualizado y enseña la pantalla de esa franja (§31.4).
+    if (idParadaActual) {
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
+            destino: 'padre',
+            datos: { idParada: idParadaActual, distancia: distanciaParaRango, franja, rangoMaximo, timestampSalioDeRango: estadoComponente.timestampSalioDeRango }
+        }).catch(e => logger.debug(`${logPrefix} Error notificando GPS restringido:`, e.message));
+    }
 
     // La ayuda (ubicación/mapas) se habilita al instante, en cualquier franja.
     _habilitarAyudaFueraDeRango(logPrefix);
