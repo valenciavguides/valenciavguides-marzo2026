@@ -4933,7 +4933,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-fd227c344fe7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-4c68f353f66a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8096,6 +8096,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `175-la-galeria-de-un-tramo-marca-su-llegada.spec.js` | 2 | En la galería de un tramo, la etiqueta de la primera imagen es el primer número de su cadena y la de la última, el último, que es la llegada: en `"7→4→8"`, el 7 y el 8 (GL-1); de control, `"6→9"`, el 6 y el 9 (GL-2) (§4.7f). Con la llegada en el segundo número cae GL-1 (dice 4). |
 | `176-un-numero-de-mapa-se-lee-igual-en-la-galeria-y-en-el-listado.spec.js` | 6 | Un número de mapa se lee igual en la galería y en el listado (§4.7f, §7.2). En la galería: un tramo `"-→21"` lleva 📌 sin número y 🎯 «21» (NM-1); `"17→-"`, 📌 «17» y 🎯 sin número (NM-2); dos números en un extremo van con `/`: `"21→22/23"` da «22/23» y `"v7-v8→v11"`, «v7/v8» (NM-3); una parada `"5,7"` dice «5/7», una `"-"` va sin etiqueta y, de control, `17` dice «17» (NM-4). En el listado de cuatro aventuras, con sus datos, cada pin escribe sus números con `/` y salen «📍5/7», «📍22/23», «📍v7/v8» y «📍16/17» (NM-5). El Puente de Monteolivete va con los números del Museo Príncipe Felipe (`"19/20"` en la Aventura3, `"13/14"` en la de 34 km): su galería y su fila del listado lo dicen, y el número está en verde con el Museo completado y no con todo hasta la Ópera (NM-6). Con la galería leyendo cada trozo tal cual caen NM-1 a NM-4 (pasa su control); con el pin unido por comas, NM-5; con el Museo en `20` y `14`, NM-6. |
 | `177-la-marca-de-los-retos-de-la-seleccion-con-el-color-de-su-caja.spec.js` | 3 | La ✓ y la ✗ de los retos de la selección llevan el color de su caja: en el R-1, una opción equivocada enseña la ✗ en el rojo de la caja, `#dc3545` (MR-1), y la correcta la ✓ en su verde, `#28a745` (MR-2); en el R-2, la opción elegida enseña la ✓ en el verde de la caja (MR-3). En los tres, de control, el borde de la caja tiene el color esperado. Con el color en las reglas de unas clases que nadie pone (`.tick.correcto`, `.x.incorrecto`), la ✓ y la ✗ salen en el negro del texto y caen los tres. |
+| `178-el-bloqueo-de-5-km-se-levanta-con-la-primera-lectura-dentro.spec.js` | 4 | El bloqueo de los 5 km se levanta con la primera lectura precisa dentro de la zona, sin esperar los 3 minutos entre comprobaciones, y en esa misma lectura sale la pantalla de la zona (§31.5). Contra el padre real con sus hijos: bloqueado, una lectura en la Ciudad de las Artes (a 2,5 km de la ruta de la Aventura1 y a 3,4 km de su parada) lo levanta y sale «muy lejos» (BK-1), también con el cartel cerrado con su ✗ (BK-2); de control, una lectura a 300 km no lo levanta (BK-3) y una dentro con ±150 m no cuenta (BK-4). Con el desbloqueo detrás de la espera de 3 minutos caen BK-1 y BK-2. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8622,7 +8623,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 172 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 173 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9140,7 +9141,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-fd227c344fe7';
+const CACHE_VERSION = 'v-4c68f353f66a';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10742,7 +10743,7 @@ Detalle técnico completo en §31.4.
 
 Esto no es un error técnico sino una comprobación de integridad: si el GPS sitúa al usuario a más de 5 kilómetros de cualquier punto de la aventura, la aplicación entiende que algo no encaja —puede que el teléfono esté dando coordenadas erróneas, o que alguien intente completar la aventura desde casa.
 
-A la tercera comprobación seguida fuera de esos 5 km aparece un cartel propio (`fotogpserror.jpg`) y el **botón de avanzar se bloquea** hasta que una comprobación vuelva a situar al usuario dentro del área de la ruta. Mientras dura el bloqueo, el cartel vuelve a salir con cada lectura del GPS y ninguna otra pantalla de distancia lo tapa; cerrado con su ✗, descansa 150 segundos. No tiene botón de reintento: una lectura nueva no levanta el bloqueo. La comprobación se hace como mucho una vez cada 3 minutos y no cuenta las lecturas con más de 100 m de margen de error (§31.5).
+A la tercera comprobación seguida fuera de esos 5 km aparece un cartel propio (`fotogpserror.jpg`) y el **botón de avanzar se bloquea** hasta que una comprobación vuelva a situar al usuario dentro del área de la ruta. Mientras dura el bloqueo, el cartel vuelve a salir con cada lectura del GPS y ninguna otra pantalla de distancia lo tapa; cerrado con su ✗, descansa 150 segundos. No tiene botón de reintento. Para bloquear, la comprobación se hace como mucho una vez cada 3 minutos; con el bloqueo puesto se hace en cada lectura, y la primera dentro de los 5 km lo levanta y deja ver la pantalla de la zona en la que está el usuario. No cuentan las lecturas con más de 100 m de margen de error (§31.5).
 
 ---
 
@@ -12565,7 +12566,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-fd227c344fe7';
+const CACHE_VERSION = 'v-4c68f353f66a';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12780,13 +12781,13 @@ Ese ciclo es el de las 4 pantallas de franja, que hijo2 realimenta en cada posic
 
 **Qué ocurre:** el GPS del usuario devuelve una posición a más de 5 km de cualquier punto de la ruta (parada, inicio/fin de tramo o waypoint). Esto indica que el usuario no está en Valencia y no puede realizar la aventura de forma legítima.
 
-**Cuándo se chequea:** `_check5kmFromRoute(lat, lng, accuracy)` (`codigo-padre.html`) se llama desde `_watchPositionSuccess()` en cada posición, y solo actúa si el modo actual es AVENTURA. Throttling de 3 minutos vía `globalThis.__VV_5KM_LAST_CHECK`: si la última comprobación fue hace menos de 3 minutos, la llamada no hace nada. Una lectura con más de 100 m de margen de error (`PRECISION_MAXIMA_M`) se ignora entera: no cuenta ni a favor ni en contra. No requiere timer independiente — usa el GPS que ya está corriendo.
+**Cuándo se chequea:** `_check5kmFromRoute(lat, lng, accuracy)` (`codigo-padre.html`) se llama desde `_watchPositionSuccess()` en cada posición, y solo actúa si el modo actual es AVENTURA. Throttling de 3 minutos vía `globalThis.__VV_5KM_LAST_CHECK`, solo sin bloqueo: si la última comprobación fue hace menos de 3 minutos, la llamada no hace nada. Con el bloqueo puesto, cada lectura se comprueba. Una lectura con más de 100 m de margen de error (`PRECISION_MAXIMA_M`) se ignora entera: no cuenta ni a favor ni en contra. No requiere timer independiente — usa el GPS que ya está corriendo.
 
 **Cómo mide la distancia:** recorre las coordenadas de la aventura activa (`__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`) y calcula, con `calcularDistancia()` (`js/utils.js`, fórmula Haversine), la distancia a cada punto candidato de cada elemento (`coordenadas`, `inicio`, `fin`, `waypoints`), quedándose con la mínima encontrada y cortando el recorrido en cuanto encuentra un punto a menos de 5.000m (`LIMIT_M`) — no necesita comprobar el resto de la ruta si ya hay un punto cercano.
 
 **Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true` a la tercera comprobación seguida fuera de los 5 km, `LECTURAS_PARA_BLOQUEAR`; una comprobación dentro pone la cuenta a cero):** overlay `#gps-out-of-range-overlay` (`fotogpserror.jpg`, con el `alt` «Fuera de la zona de la aventura, a más de 5 km») con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de N km", con la distancia medida al declararse el bloqueo), para que un lector de pantalla diga la causa real. El cartel sale al declarar el bloqueo y vuelve a salir en cada lectura mientras dura —`_check5kmFromRoute()` lo pide al principio de cada llamada, antes de la espera de 3 minutos entre comprobaciones—, y manda sobre las otras cinco pantallas de distancia: mientras dura el bloqueo no sale ninguna otra (`_puedeSalirPantallaDistanciaGPS()`, §31.4). El botón de cierre ✗ solo descarta el aviso en pantalla, sin desbloquear nada: durante su tiempo de espera (150 s) no sale ninguna pantalla de distancia, y pasado ese tiempo la lectura siguiente vuelve a enseñar el cartel. El cartel no tiene botón de reintento (§31.6). Al declarar el bloqueo, `_check5kmFromRoute()` llama a `globalThis._sincronizarAvanzar()` (Script 2) y «avanzar» se apaga (`razon: 'fuera_de_zona_5km'`): `_decidirAvanzar()` mira `__VV_5KM_BLOCKED` cada vez que decide (§29.4), así que nada lo vuelve a encender mientras dure el bloqueo.
 
-**Recuperación:** en la siguiente comprobación que caiga dentro de los 5 km, `__VV_5KM_BLOCKED` vuelve a `false`, se llama `hideGpsOutOfRangeOverlay()`, sale el aviso de precisión si hijo2 lo ha pedido y la precisión no ha vuelto (§31.4), y se llama otra vez a `_sincronizarAvanzar()`: «avanzar» vuelve a encenderse solo si el elemento está completado y nada más lo impide. Las pantallas de franja vuelven con la lectura siguiente.
+**Recuperación:** en la primera lectura que caiga dentro de los 5 km —con el bloqueo puesto no hay espera entre comprobaciones—, `__VV_5KM_BLOCKED` vuelve a `false`, se llama `hideGpsOutOfRangeOverlay()`, sale el aviso de precisión si hijo2 lo ha pedido y la precisión no ha vuelto (§31.4), y se llama otra vez a `_sincronizarAvanzar()`: «avanzar» vuelve a encenderse solo si el elemento está completado y nada más lo impide. La pantalla de la franja en la que está el usuario sale con esa misma lectura, que `_watchPositionSuccess()` lleva a hijo2 después de esta comprobación; también con el cartel del bloqueo cerrado con su ✗, porque su descanso es solo suyo (spec 178).
 
 **`#gps-out-of-range-overlay` (`fotogpserror.jpg`) es exclusivo de este bloqueo** — un único icono con una cifra impresa fija (2KM o 5KM) no podría ser correcto para dos umbrales reales distintos a la vez, así que "perdido" tiene su propio overlay e imagen por separado (`#foto-perdido-overlay`/`foto-rango-perdido.jpg`, §31.4); este overlay solo se muestra desde `_check5kmFromRoute()`. Una lectura con más de 100 m de margen de error no cuenta para este bloqueo; la mala precisión tiene su propio aviso (`gps-precision-overlay`, §31.4), que no sale mientras dura el bloqueo.
 
@@ -12796,7 +12797,7 @@ Ese ciclo es el de las 4 pantallas de franja, que hijo2 realimenta en cada posic
 
 ### 31.6 El cartel del bloqueo de 5 km, sin reintento
 
-`#gps-out-of-range-overlay` (§31.5) lleva su imagen y su botón de cierre ✗, y ningún otro: a diferencia de las otras cinco pantallas de la familia (§31.4), no tiene botón de reintento. Mientras dura el bloqueo, una posición nueva no puede levantarlo —solo lo hace `_check5kmFromRoute()`, que mide cada 3 minutos con las lecturas del `watchPosition`—, y para volver a la ruta el usuario tiene la ubicación y los mapas de hijo2, que fuera de rango están encendidos (§25.7).
+`#gps-out-of-range-overlay` (§31.5) lleva su imagen y su botón de cierre ✗, y ningún otro: a diferencia de las otras cinco pantallas de la familia (§31.4), no tiene botón de reintento. El bloqueo solo lo levanta `_check5kmFromRoute()`, con las lecturas del `watchPosition`: mientras dura mide cada una, y la primera precisa dentro de los 5 km lo levanta. Para volver a la ruta el usuario tiene la ubicación y los mapas de hijo2, que fuera de rango están encendidos (§25.7).
 
 **Estado de implementación:** ✅ implementado.
 

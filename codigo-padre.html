@@ -5470,7 +5470,11 @@
 
                 const now = Date.now();
                 const THROTTLE_MS = 3 * 60 * 1000;
-                if (globalThis.__VV_5KM_LAST_CHECK && (now - globalThis.__VV_5KM_LAST_CHECK) < THROTTLE_MS) return;
+                // La espera de 3 minutos es para no bloquear de más (tres lecturas fuera, espaciadas). Para levantar el
+                // bloqueo no hace falta: con él puesto se mira cada lectura, y la primera precisa dentro de los 5 km lo
+                // levanta; en esa misma lectura sale la pantalla de la zona en la que está (K-156, spec 178).
+                const conBloqueo = globalThis.__VV_5KM_BLOCKED === true;
+                if (!conBloqueo && globalThis.__VV_5KM_LAST_CHECK && (now - globalThis.__VV_5KM_LAST_CHECK) < THROTTLE_MS) return;
                 globalThis.__VV_5KM_LAST_CHECK = now;
 
                 const LIMIT_M = 5000;
