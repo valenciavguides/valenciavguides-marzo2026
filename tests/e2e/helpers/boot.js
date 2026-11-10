@@ -286,11 +286,13 @@ const MARCO_VACIO = '/tests/e2e/helpers/marco-vacio.html';
  *
  * @param {import('@playwright/test').Page} page
  * @param {string} fichero  p.ej. 'retos-hijo4.html'
- * @param {{esperarPreparado?: boolean}} [opciones]  `false` para los nietos (puzzle, vídeo),
- *        que no hacen el saludo de los hijos: no mandan `HIJO_PREPARADO` ni lo tienen que
- *        mandar, porque no participan del arranque de la aplicación.
+ * @param {{esperarPreparado?: boolean, confirmar?: boolean}} [opciones]  `esperarPreparado: false` para los
+ *        nietos (puzzle, vídeo), que no hacen el saludo de los hijos: no mandan `HIJO_PREPARADO` ni lo tienen
+ *        que mandar, porque no participan del arranque de la aplicación. `confirmar: true` le contesta el
+ *        apretón de manos como el padre (`PADRE_CONFIRMA_HIJO_LISTO`) y espera a que enseñe su interfaz: sin
+ *        confirmación un hijo sigue oculto, como en la aplicación (§26.13, spec 180).
  */
-async function abrirHijoEnMarco(page, fichero, { esperarPreparado = true } = {}) {
+async function abrirHijoEnMarco(page, fichero, { esperarPreparado = true, confirmar = false } = {}) {
   await page.goto(MARCO_VACIO);
   await page.evaluate((src) => new Promise((resolve) => {
     const el = document.createElement('iframe');
@@ -326,6 +328,21 @@ async function abrirHijoEnMarco(page, fichero, { esperarPreparado = true } = {})
     if (listo) break;
     if (Date.now() > hasta) throw new Error(`${fichero} no mando HIJO_PREPARADO en ${BOOT_TIMEOUT} ms`);
     await page.waitForTimeout(100); // VENTANA-OBSERVACION: sondeo del aviso del hijo, acotado arriba
+  }
+
+  if (!confirmar) return marco;
+
+  // Como el padre real, que contesta el apreton de manos: con la confirmacion el hijo enseña su interfaz. Se le
+  // confirma con el id con el que se ha presentado en su HIJO_PREPARADO.
+  const id = await page.evaluate(() =>
+    (globalThis.__recibidos || []).find((m) => m.tipo === 'SISTEMA.HIJO_PREPARADO')?.origen || null);
+  if (!id) throw new Error(`${fichero} mando HIJO_PREPARADO sin origen`);
+  await enviarAlHijo(page, { tipo: 'SISTEMA.PADRE_CONFIRMA_HIJO_LISTO', origen: 'padre', destino: id, datos: { timestamp: Date.now() } });
+  const hastaQueSeVea = Date.now() + BOOT_TIMEOUT;
+  for (;;) {
+    if (await marco.evaluate(() => document.body?.style.display !== 'none')) break;
+    if (Date.now() > hastaQueSeVea) throw new Error(`${fichero} no enseño su interfaz tras la confirmacion en ${BOOT_TIMEOUT} ms`);
+    await page.waitForTimeout(100); // VENTANA-OBSERVACION: sondeo de la interfaz del hijo tras confirmarle, acotado arriba
   }
 
   return marco;

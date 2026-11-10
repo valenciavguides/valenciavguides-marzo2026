@@ -1082,11 +1082,9 @@
 
     // Inicialización y controladores (adaptados a mensajería actual)
     try {
-        // Ocultar la UI hasta que el padre confirme que los controladores están listos
-        let _uiConfirmado = false;
-        // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
+        // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque. La enseñan solo la confirmación del
+        // padre y el último recurso del apretón de manos (alAgotarse): un solo camino, sin guarda (docs/estudio-caminos.md, K-191).
         function mostrarUI() {
-            if (!_uiConfirmado) { logger.warn('[hijo3] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
             try {
                 mostrarInterfaz();
                 logger.info('[hijo3] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
@@ -1132,7 +1130,7 @@
             // Enviar HIJO_LISTO para completar handshake con sistema de reintentos
             if (!estado.hijoListoEnviado) {
                 estado.hijoListoEnviado = true;
-                _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo3]', alAgotarse: () => { _uiConfirmado = true; mostrarUI(); } });
+                _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo3]', alAgotarse: mostrarUI });
             }
         });
 
@@ -1157,7 +1155,6 @@
 
                 // Mostrar UI ahora que el padre confirmó
                 try {
-                    _uiConfirmado = true;
                     mostrarUI();
                 } catch (e) {
                     logger.debug(`${logPrefix} No se pudo forzar mostrarUI`, e && e.message);

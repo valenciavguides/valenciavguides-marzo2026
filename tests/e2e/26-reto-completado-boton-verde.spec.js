@@ -66,7 +66,7 @@ async function seEnvioCompletado(page) {
 
 test.describe('RC — RETO.COMPLETADO se confirma al pulsar el botón verde, no antes', () => {
   test('RC-1. Responder bien no lo envía; pulsar el botón verde sí', async ({ page }) => {
-    const hijo = await abrirHijoEnMarco(page, HIJO4);
+    const hijo = await abrirHijoEnMarco(page, HIJO4, { confirmar: true });
     await mostrarReto(page, hijo);
 
     await hijo.locator('.btn', { hasText: '🫵' }).click({ timeout: 5000 });
@@ -82,7 +82,7 @@ test.describe('RC — RETO.COMPLETADO se confirma al pulsar el botón verde, no 
   });
 
   test('RC-2. Si nunca se pulsa el botón verde, nunca se envía', async ({ page }) => {
-    const hijo = await abrirHijoEnMarco(page, HIJO4);
+    const hijo = await abrirHijoEnMarco(page, HIJO4, { confirmar: true });
     await mostrarReto(page, hijo);
 
     await hijo.locator('.btn', { hasText: '🫵' }).click({ timeout: 5000 });

@@ -46,10 +46,15 @@ const RETO_OPCION = {
 
 const PADRE_ID = 'padre-P7';
 
-/** Mismo patrón que 43-saltar-reto-puzzle-roto.spec.js: el mensaje se postea a la propia página. */
+/**
+ * hijo4 suelto, como página de primer nivel: cada mensaje se postea a la propia página, con `origen: 'padre'`. Primero la
+ * confirmación del apretón de manos, como la manda el padre: sin ella hijo4 no enseña su interfaz (§26.13, spec 180). Las
+ * dos se repiten hasta que el reto se ve, porque los handlers de hijo4 se registran tras los `await` de su módulo.
+ */
 async function enviarRetoMostrarYEsperar(page, datos, selectorEspera) {
   for (let intento = 0; intento < 10; intento++) {
     await page.evaluate((d) => {
+      globalThis.postMessage({ tipo: 'SISTEMA.PADRE_CONFIRMA_HIJO_LISTO', origen: 'padre', destino: 'hijo4', datos: { timestamp: Date.now() } }, globalThis.location.origin);
       globalThis.postMessage({ tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos: d }, globalThis.location.origin);
     }, datos);
     try {

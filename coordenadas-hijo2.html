@@ -1145,16 +1145,11 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) =
 // ==================== CONTROLADORES ====================
 
 try {
-    // Ocultar la UI hasta que el padre confirme que los controladores están listos
-    let _uiConfirmado = false;
     // La serie de HIJO_LISTO en marcha (bus.enviarHijoListoConReintento): PADRE_CONFIRMA_HIJO_LISTO la para.
     let _hijoListo = null;
-    // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
+    // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque. La enseñan solo la confirmación del
+    // padre y el último recurso del apretón de manos (alAgotarse): un solo camino, sin guarda (docs/estudio-caminos.md, K-191).
     function mostrarUI() {
-        if (!_uiConfirmado) {
-            logger.warn('[hijo2] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO');
-            return;
-        }
         try {
             mostrarInterfaz();
             logger.info('[hijo2] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
@@ -1199,7 +1194,7 @@ try {
         if (!estadoComponente.hijoListoEnviado) {
             estadoComponente.hijoListoEnviado = true;
             estadoComponente.inicializado = true;
-            _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo2]', alAgotarse: () => { _uiConfirmado = true; mostrarUI(); } });
+            _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo2]', alAgotarse: mostrarUI });
         }
     });
 
@@ -1233,7 +1228,7 @@ try {
             // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 — ver GUIA-COMPLETA.md §10.11).
 
             // Mostrar UI ahora que el padre confirmó
-            try { _uiConfirmado = true; mostrarUI(); } catch (e) { logger.warn('[hijo2] Error mostrando UI:', e && e.message); }
+            try { mostrarUI(); } catch (e) { logger.warn('[hijo2] Error mostrando UI:', e && e.message); }
 
         } catch (error) {
             logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);

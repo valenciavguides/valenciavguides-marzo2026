@@ -30,7 +30,7 @@ const PLACEHOLDER = { es: 'Escriba su respuesta aquí...', fr: 'Écrivez votre r
 
 /** El placeholder del campo de texto que pinta hijo4 al recibir un RETO.MOSTRAR con (o sin) `idioma`. */
 async function placeholderTrasMostrar(page, idioma) {
-  const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+  const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
   const datos = { retoId: RETO_TEXTO.id, retosArray: [RETO_TEXTO], contexto: 'manual', timestamp: Date.now() };
   if (idioma) datos.idioma = idioma;
   await enviarAlHijo(page, { tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos });
@@ -44,7 +44,7 @@ test.describe('ID — hijo4 recibe el idioma de la aventura', () => {
   });
 
   test('ID-2. El idioma lo pone cada RETO.MOSTRAR: el reto siguiente, en otro idioma, cambia el marcador', async ({ page }) => {
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
     const segundo = { ...RETO_TEXTO, id: 'id-texto-2' };
     const mostrarEn = async (reto, idioma) => {
       await enviarAlHijo(page, { tipo: 'RETO.MOSTRAR', origen: 'padre', destino: 'hijo4', datos: { retoId: reto.id, retosArray: [RETO_TEXTO, segundo], contexto: 'manual', idioma, timestamp: Date.now() } });

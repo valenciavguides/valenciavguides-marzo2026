@@ -280,7 +280,7 @@ const enviar = (hijo) => hijo.locator('button.btn', { hasText: '🫵' });
 
 async function abrirReto(page, reto, selector) {
   await espiarSonidos(page);
-  const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+  const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
   await mostrarReto(page, hijo, reto, selector);
   return hijo;
 }
@@ -361,7 +361,7 @@ test.describe('RT-S — retos-hijo4.html: cada efecto en su momento', () => {
 
   test('RT-S7. Puzzle dentro de hijo4: lo reproduce el puzzle y hijo4 no lo repite', async ({ page }) => {
     await espiarSonidos(page);
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
     await mostrarReto(page, hijo, RETO_PUZZLE, '#puzzleIframe');
     await hijo.frameLocator('#puzzleIframe').locator('#skipBtn').click({ timeout: 15_000 });
     await expect(hijo.locator('#btn-puzzle-continuar')).toBeVisible({ timeout: 15_000 });

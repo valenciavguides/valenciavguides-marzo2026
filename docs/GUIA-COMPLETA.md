@@ -4933,7 +4933,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-66e304f41a73'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f0a679396dad'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.1.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7948,7 +7948,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `23-polyline-autoreparacion.spec.js` | 3 | Con un mapa simulado que rechaza `addSource` con «Style is not done loading.» hasta que su estilo carga (§4.6a): `dibujarPolylineNavegacion({origen,destino})` (la función real del botón de ubicación) no deja ninguna capa hasta que el mapa dispara `'idle'`, momento en el que la capa real se crea sola (PR-1); un `.setStyle()` pedido sobre el objeto que devuelve, antes de que exista la capa real, se aplica sobre ella en cuanto se crea, no se pierde (PR-2); con el estilo ya cargado, la capa se crea al instante (PR-3) |
 | `24-camara-sigue-usuario.spec.js` | 1 | Ciclo completo del seguimiento de cámara (§4.6b): la primera posición GPS centra la cámara (`easeTo`); un `dragstart` sin `originalEvent` (programático) no pausa el seguimiento; uno con `originalEvent` (gesto real del usuario) sí lo pausa; `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato |
 | `25-brujula-modo.spec.js` | 8 | Menú de modo de cámara `#brujula-modo` (§4.6b): existe y empieza oculto sin estilo inline forzándolo a visible (BR-1); mismo `bottom` que `#selector-tipo-mapa` y mismo margen izquierdo que el selector tiene a la derecha (espejado), ancho del botón principal en rango (BR-2); pulsar el botón principal despliega/pliega las 3 opciones (BR-3); elegir "Norte fijo" llama a `desactivarSeguimientoRumbo()` y cierra el desplegable (BR-4); elegir "Seguir mi rumbo" llama a `activarSeguimientoRumbo()` (BR-5); elegir "Centrar mapa en mi ubicación" llama a `reactivarSeguimientoCamara()` — acción puntual, no modo persistente (BR-6); con `brujulaEstaActiva()` simulada en `false`, "Seguir mi rumbo" revierte sola a "Norte fijo" ~1.5s después, invocando `desactivarSeguimientoRumbo()` (BR-7); alternar rumbo→norte→rumbo dos veces en menos de 1.5s no deja que el timeout de la primera elección revierta la segunda antes de su propio plazo (BR-9) |
-| `26-reto-completado-boton-verde.spec.js` | 2 | Cargando `retos-hijo4.html` como página de nivel superior: tras responder correcto un reto de tipo texto, ningún log de envío de `RETO.COMPLETADO` aparece todavía — solo el de "pendiente de confirmación con el botón verde"; al pulsar `#btnNextAfterReto`, sí aparece (confirmado o sin confirmación) (RC-1); si el botón verde nunca se pulsa, ese envío nunca se intenta (RC-2). Verifica por log de consola, no por el mensaje `postMessage` en sí — sin un padre real que responda, el delivery real pasa por un bucle interno de auto-confirmación de `mensajeria.js` no observable de forma fiable en este arnés de test, pero cada rama del código bajo prueba emite su propio log de forma síncrona en el punto exacto que importa |
+| `26-reto-completado-boton-verde.spec.js` | 2 | `RETO.COMPLETADO` sale al pulsar el botón verde, y no al acertar. Con `retos-hijo4.html` dentro de `helpers/marco-vacio.html`, que le hace de padre y le confirma el apretón de manos: tras responder bien un reto de tipo texto, al marco no le llega `RETO.COMPLETADO`, y al pulsar `#btnNextAfterReto` sí (RC-1); si el botón verde no se pulsa, en 8 s no llega (RC-2). Se mira el mensaje que le llega al marco, no un log. |
 | `27-seguimiento-rumbo.spec.js` | 1 | Modo "Seguir mi rumbo" (§4.6b): con el modo desactivado (estado por defecto), una lectura de brújula no mueve el `bearing` del mapa (SR-1); `activarSeguimientoRumbo()` gira el mapa de inmediato (`easeTo`) al último rumbo conocido y, a partir de ahí, cada lectura de brújula sí mueve el `bearing` (`setBearing()`, dentro de `actualizarRotacionFlechaGPS()`) (SR-2); `desactivarSeguimientoRumbo()` fija el mapa a norte (`bearing:0`) de inmediato y las lecturas de brújula dejan de mover el `bearing` otra vez (SR-3) |
 | `28-audio-control-error.spec.js` | 3 | `_manejarAudioControl()` (§7.4 "Controles globales de audio", audio-hijo3.html): pedir `play` de un `audioId` que no está en caché local (`cargarYReproducirAudio()` devuelve `exito:false` de forma determinista en este contexto standalone) hace que el catch propio de la función registre el fallo explícitamente, en vez de perderse en el catch genérico externo o confirmar éxito de todos modos ignorando el `exito:false` (AC-1); en `codigo-padre.html`, `_hdl_SISTEMA_ERROR` despacha por código: con `AUDIO_CONTROL_FALLIDO` marca el audio activo como no disponible —`estado._audioFalloId`, que es lo que habilita el botón ⏩ de saltar (§25.5f)— y con cualquier otro código no toca el estado del audio (SE-2) |
 | `29-recordatorio-audio.spec.js` | 6 | Cartel recordatorio "pulse play" (§25.5c, `codigo-padre.html`), con `page.clock` simulado: no aparece solo por tiempo (10s) sin proximidad GPS real (`estado.gps.proximidadReal`), aparece en cuanto se cumplen ambas condiciones, se autocierra a los 7s, reaparece cada 20s, y pulsar play/replay en `#audio-control-dropdown` solo cierra el cartel visible sin apagarlo para siempre (RA-1); reiniciar el recordatorio al activarse un nuevo elemento cancela el timer del anterior en vez de acumularlo (RA-2); la proximidad real sola tampoco basta antes de los 10s, caso simétrico de RA-1 (RA-3); el fin de audio genuino (`_detenerRecordatorioAudio`, disparado desde `AUDIO.FIN_REPRODUCCION`) sí apaga el recordatorio para siempre, a diferencia de pulsar play (RA-4); el id de audio de OTRO elemento colgado en `audioActual` no bloquea el recordatorio del elemento activo real (RA-5); el id de audio del MISMO elemento activo, reproduciendo de verdad, sí lo bloquea (RA-6) |
@@ -8098,6 +8098,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `177-la-marca-de-los-retos-de-la-seleccion-con-el-color-de-su-caja.spec.js` | 3 | La ✓ y la ✗ de los retos de la selección llevan el color de su caja: en el R-1, una opción equivocada enseña la ✗ en el rojo de la caja, `#dc3545` (MR-1), y la correcta la ✓ en su verde, `#28a745` (MR-2); en el R-2, la opción elegida enseña la ✓ en el verde de la caja (MR-3). En los tres, de control, el borde de la caja tiene el color esperado. Con el color en las reglas de unas clases que nadie pone (`.tick.correcto`, `.x.incorrecto`), la ✓ y la ✗ salen en el negro del texto y caen los tres. |
 | `178-el-bloqueo-de-5-km-se-levanta-con-la-primera-lectura-dentro.spec.js` | 4 | El bloqueo de los 5 km se levanta con la primera lectura precisa dentro de la zona, sin esperar los 3 minutos entre comprobaciones, y en esa misma lectura sale la pantalla de la zona (§31.5). Contra el padre real con sus hijos: bloqueado, una lectura en la Ciudad de las Artes (a 2,5 km de la ruta de la Aventura1 y a 3,4 km de su parada) lo levanta y sale «muy lejos» (BK-1), también con el cartel cerrado con su ✗ (BK-2); de control, una lectura a 300 km no lo levanta (BK-3) y una dentro con ±150 m no cuenta (BK-4). Con el desbloqueo detrás de la espera de 3 minutos caen BK-1 y BK-2. |
 | `179-el-mapa-mide-contra-el-elemento-actual-del-padre.spec.js` | 2 | El mapa mide cada lectura del GPS contra el elemento actual del padre, no contra su copia (`estadoMapa.paradaActual`), que cambia después (§11, «Cómo decide cuál es el elemento a buscar»). Contra el padre real con sus hijos: con la copia del mapa dejada en el elemento anterior (`funcionesMapa.limpiarPorEstado`, con el modo actual), la lectura que llega a hijo2 en `NAVEGACION.ACTUALIZAR_ESTADO` lleva el elemento actual del padre (MA-1); de control, con la copia al día, también (MA-2). Midiendo contra la copia del mapa cae MA-1 (llega el elemento anterior). |
+| `180-hijo4-se-ensena-solo-por-el-apreton-de-manos.spec.js` | 2 | Un hijo enseña su interfaz por un solo camino, el apretón de manos (§26.13). Con `retos-hijo4.html` en `helpers/marco-vacio.html`: sin la confirmación del padre, un `RETO.MOSTRAR` pinta el reto y la interfaz sigue oculta (RU-1); de control, con la confirmación, la interfaz se ve y el reto también (RU-2). Con hijo4 enseñándose al recibir un reto cae RU-1. |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests depende de los specs de `tests/e2e/` — `npm run test:e2e:chromium` da el número actual en Chromium.
 
@@ -8117,6 +8118,10 @@ Todos los specs comparten la misma infraestructura (`tests/e2e/helpers/`):
   envío con `enviarMensajeConConfirmacion` agota aquí su plazo entero —medido, ~5 s— y el
   test pasa igual sin haber probado nada del acuse. Un test que necesite el caso contrario
   —el padre calla y el emisor agota el plazo— pone `__marcoContestaAcuses = false`.
+  Con `abrirHijoEnMarco(page, fichero, { confirmar: true })` le contesta además el apretón de
+  manos como el padre —`SISTEMA.PADRE_CONFIRMA_HIJO_LISTO`, con el id de su `HIJO_PREPARADO`— y
+  espera a que enseñe su interfaz: sin confirmación el hijo sigue oculto, como en la aplicación
+  (§26.13), así que un test que tenga que ver o pulsar algo suyo la pide.
   Lleva el mismo `<meta name="viewport">` que el padre: sin él, un navegador móvil maqueta
   la página a 980 px y la reduce a la pantalla, el hijo no mide lo que mide dentro del padre
   y, en webkit, el toque de Playwright cae fuera del botón.
@@ -8624,7 +8629,7 @@ proyecto/
 │                                      (no hay carpeta `backend/`: se creará al construir la API — §10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 174 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
+│   └── e2e/                          ← Tests Playwright — 175 specs; §18.3 describe lo que verifica cada uno, `tests/master-test.html` los lista todos (catálogo generado con `npm run sync:master-test`) y `npm run test:e2e:chromium` da el recuento actual de tests
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -9142,7 +9147,7 @@ El spec 151 (SW-3) lo vigila: lee enteras las dos listas, `APP_SHELL` y `PROTECT
 
 ```javascript
 // sw.js — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-66e304f41a73';
+const CACHE_VERSION = 'v-f0a679396dad';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11987,7 +11992,7 @@ GPS detecta que el usuario llegó al final de un TRAMO (distancia ≤ radioLlega
 
 #### Qué problema resuelve
 
-Cada uno de hijo1 a hijo5 mantiene su UI con `display: none` hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`: la oculta `ocultarInterfazHastaConfirmar()` (`js/utils.js`) en la parte síncrona de su módulo, antes de cualquier `await`, y la enseña lo que esta devuelve, `mostrarInterfaz()`, desde su `mostrarUI()` (hijo6 no oculta su documento: el padre mantiene oculto su iframe hasta que su botón lo enseña). `postMessage` no garantiza entrega, así que si ese mensaje se pierde la UI quedaría invisible para siempre.
+Cada uno de hijo1 a hijo5 mantiene su UI con `display: none` hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`: la oculta `ocultarInterfazHastaConfirmar()` (`js/utils.js`) en la parte síncrona de su módulo, antes de cualquier `await`, y la enseña lo que esta devuelve, `mostrarInterfaz()`, solo desde su `mostrarUI()` (hijo6 no oculta su documento: el padre mantiene oculto su iframe hasta que su botón lo enseña). `postMessage` no garantiza entrega, así que si ese mensaje se pierde la UI quedaría invisible para siempre.
 
 **Por qué no basta un timeout simple:**
 
@@ -12017,7 +12022,7 @@ Una sola función, en el bus: `enviarHijoListoConReintento({ datos, prefijoLog, 
 _hijoListo = bus.enviarHijoListoConReintento({
     datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID },
     prefijoLog: '[hijo3]',
-    alAgotarse: () => { _uiConfirmado = true; mostrarUI(); },   // hijo6 no lo pasa
+    alAgotarse: mostrarUI,   // hijo6 no lo pasa
 });
 
 // En el de SISTEMA.PADRE_CONFIRMA_HIJO_LISTO:
@@ -12026,7 +12031,7 @@ _hijoListo?.parar();
 
 #### Quién la llama
 
-Los seis hijos y la selección: la arrancan en su controlador de `SISTEMA.PADRE_DATOS` y la paran en el de `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO`. hijo1 a hijo5 le pasan como `alAgotarse` enseñar su interfaz (`_uiConfirmado = true` —en hijo1, `globalThis._uiConfirmado`— y `mostrarUI()`). hijo6 no le pasa nada: no tiene `mostrarUI()`, y su visibilidad la decide el padre (el iframe sigue oculto hasta que el usuario pulsa `#btn-chat-soporte`, §27). La selección tampoco le pasa nada: se ve desde el principio y no espera a la confirmación para nada. Lo comprueba el spec 172, con cada uno en un marco que hace de padre.
+Los seis hijos y la selección: la arrancan en su controlador de `SISTEMA.PADRE_DATOS` y la paran en el de `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO`. hijo1 a hijo5 le pasan como `alAgotarse` su `mostrarUI()`, la misma que llama su controlador de `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO`: son los dos únicos sitios desde los que un hijo enseña su interfaz, y `mostrarUI()` la enseña sin más condición (la de hijo5, una sola vez aunque llegue más de una confirmación). hijo4 no la enseña al recibir un reto (spec 180). hijo6 no le pasa nada: no tiene `mostrarUI()`, y su visibilidad la decide el padre (el iframe sigue oculto hasta que el usuario pulsa `#btn-chat-soporte`, §27). La selección tampoco le pasa nada: se ve desde el principio y no espera a la confirmación para nada. Lo comprueba el spec 172, con cada uno en un marco que hace de padre.
 
 #### Flujo del handshake con reintentos
 
@@ -12567,7 +12572,7 @@ Puntos de uso representativos:
 **Archivo:** `sw.js` (`const CACHE_VERSION`)
 
 ```js
-const CACHE_VERSION = 'v-66e304f41a73';
+const CACHE_VERSION = 'v-f0a679396dad';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

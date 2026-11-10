@@ -752,12 +752,11 @@
     }
 
     try {
-        // Ocultar UI hasta PADRE_CONFIRMA
-        let _uiConfirmado = false;
         let _uiMostrada = false;
-        // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
+        // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque. La enseñan solo la confirmación del
+        // padre y el último recurso del apretón de manos (alAgotarse): un solo camino, sin guarda de confirmación
+        // (docs/estudio-caminos.md, K-191). _uiMostrada la enseña una vez aunque llegue más de una confirmación.
         function mostrarUI() {
-            if (!_uiConfirmado) { logger.warn('[hijo5] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
             if (_uiMostrada) return;
             _uiMostrada = true;
             mostrarInterfaz(); logger.info('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
@@ -805,7 +804,7 @@
             // Enviar HIJO_LISTO para completar handshake con sistema de reintentos
             if (!estado.hijoListoEnviado) {
                 estado.hijoListoEnviado = true;
-                _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo5]', alAgotarse: () => { _uiConfirmado = true; mostrarUI(); } });
+                _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo5]', alAgotarse: mostrarUI });
             }
         });
 
@@ -826,18 +825,18 @@
 
                 const { modoInicial } = mensaje.datos || {};
                 _sincronizarBotonConModo(modoInicial, logPrefix);
-                _uiConfirmado = true;
-                mostrarUI();
-                await solicitarParadasDelPadre();
-                logger.info(`${logPrefix} Solicitud de datos iniciales enviada tras confirmación`);
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
             }
-            // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 — ver GUIA-COMPLETA.md §10.11).
+            // Una sola vez y fuera del try de lo demás: la interfaz se enseña aunque falle algo de arriba (K-191).
+            mostrarUI();
             try {
-                _uiConfirmado = true;
-                mostrarUI();
-            } catch (e) { logger.debug('[hijo5] mostrarUI error:', e); }
+                await solicitarParadasDelPadre();
+                logger.info(`${logPrefix} Solicitud de datos iniciales enviada tras confirmación`);
+            } catch (error) {
+                logger.error(`${logPrefix} Error pidiendo las paradas tras la confirmación:`, error);
+            }
+            // El modo llega por `modoInicial` al conectarse y por CAMBIO_MODO después; aquí no se aparca nada (un solo camino, decisión 11 — ver GUIA-COMPLETA.md §10.11).
         });
 
         // ============================================

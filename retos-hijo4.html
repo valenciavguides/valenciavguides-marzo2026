@@ -1221,11 +1221,9 @@
 
         // Inicializar mensajería y controladores
         try {
-            // Ocultar la UI hasta que el padre confirme que los controladores están listos
-            let _uiConfirmado = false;
-            // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
+            // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque. La enseñan solo la confirmación del
+            // padre y el último recurso del apretón de manos (alAgotarse): un solo camino, sin guarda (docs/estudio-caminos.md, K-191).
             function mostrarUI() {
-                if (!_uiConfirmado) { return; }
                 try { mostrarInterfaz(); logger.info(`[hijo4] UI visible tras PADRE_CONFIRMA_HIJO_LISTO — body.display=${document.body?.style.display}`); } catch (_e) {} // NOSONAR
             }
 
@@ -1258,7 +1256,7 @@
                 // Enviar HIJO_LISTO para completar handshake con sistema de reintentos
                 if (!estado.hijoListoEnviado) {
                     estado.hijoListoEnviado = true;
-                    _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo4]', alAgotarse: () => { _uiConfirmado = true; mostrarUI(); } });
+                    _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo4]', alAgotarse: mostrarUI });
                 }
             });
 
@@ -1281,7 +1279,7 @@
                 }
 
                 // Mostrar UI ahora que el padre confirmó
-                try { _uiConfirmado = true; mostrarUI(); } catch (_e) { /* ignore */ } // NOSONAR
+                try { mostrarUI(); } catch (_e) { /* ignore */ } // NOSONAR
 
             });
 
@@ -1299,13 +1297,8 @@
                     logger.info(`[hijo4][DEBUG] RETO.MOSTRAR handler — retoId="${retoId}", retosArray recibido=${retosArray?.length || 0}, caché local=${globalThis.__vv_retoCache?.size || 0}`);
                     logger.info(`[hijo4] RETO.MOSTRAR recibido para reto: ${retoId}`);
 
-                    // FIX: Forzar body visible al recibir RETO.MOSTRAR
-                    // Si PADRE_CONFIRMA_HIJO_LISTO no llego, body puede estar display:none
-                    try {
-                        mostrarInterfaz();
-                        document.body.style.visibility = 'visible';
-                        document.body.style.opacity = '1';
-                    } catch(_e) { /* ignore */ } // NOSONAR
+                    // La interfaz no se enseña aquí: la enseña el apretón de manos, como en los demás hijos (K-191). Si la
+                    // confirmación del padre no llegara, la enseña el último recurso de enviarHijoListoConReintento.
 
                     // Protección pasiva por parada: el padre envía el reto en línea; se añade
                     // a la caché acotada (no se sobrescribe todo el histórico como antes).

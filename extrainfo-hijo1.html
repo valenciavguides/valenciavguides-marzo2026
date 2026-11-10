@@ -100,14 +100,9 @@
     // ============================================================
     // FUNCIÓN PARA MOSTRAR UI
     // ============================================================
-    globalThis._uiConfirmado = false;
-
-    // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque.
+    // Ya oculto al principio del modulo, antes de los awaits: ver alli el porque. La enseñan solo la confirmación del
+    // padre y el último recurso del apretón de manos (alAgotarse): un solo camino, sin guarda (docs/estudio-caminos.md, K-191).
     function mostrarUI() {
-        if (!globalThis._uiConfirmado) {
-            logger.warn(`${CONFIG_HIJO.IFRAME_ID} mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO`);
-            return;
-        }
         try {
             mostrarInterfaz();
             logger.info(`${CONFIG_HIJO.IFRAME_ID} UI visible tras PADRE_CONFIRMA_HIJO_LISTO`);
@@ -129,7 +124,6 @@
 
             // 1. La interfaz sigue oculta hasta PADRE_CONFIRMA_HIJO_LISTO. Se oculto al principio
             //    del modulo, antes del await del bus, y el bus tambien se inicializo alli.
-            globalThis._uiConfirmado = false;
 
             // 2. Registrar controladores
             registrarControladores();
@@ -205,7 +199,7 @@
                 // Enviar HIJO_LISTO con sistema de reintentos activos
                 if (!estadoMenu.hijoListoEnviado) {
                     estadoMenu.hijoListoEnviado = true;
-                    _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo1]', alAgotarse: () => { globalThis._uiConfirmado = true; mostrarUI(); } });
+                    _hijoListo = bus.enviarHijoListoConReintento({ datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID }, prefijoLog: '[hijo1]', alAgotarse: mostrarUI });
                 }
             });
 
@@ -232,7 +226,6 @@
 
                     // Inicializar la lógica de menú visible y mostrar UI ahora que el padre confirmó
                     try { inicializarLogicaMenu(); } catch (e) { logger.warn(`${controladorPrefix} inicializarLogicaMenu falló:`, e); }
-                    globalThis._uiConfirmado = true;
                     mostrarUI();
 
                     return {

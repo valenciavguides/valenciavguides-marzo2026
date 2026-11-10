@@ -126,7 +126,7 @@ async function mostrarReto(page, hijo, datos, selectorEspera) {
 
 test.describe('RT — retos-hijo4.html: botón de saltar (⏩)', () => {
   test('RT-1. Reto de opción válido: saltar marca la respuesta correcta y habilita el mundo verde', async ({ page }) => {
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
 
     const reto = { id: 'test-skip-opcion', tipo: 'opcion', pregunta: '¿Test?', opciones: ['A', 'B', 'C'], correctas: ['B'] };
     await mostrarReto(page, hijo, { retoId: reto.id, retosArray: [reto] }, 'input[name="op"]');
@@ -148,7 +148,7 @@ test.describe('RT — retos-hijo4.html: botón de saltar (⏩)', () => {
   test('RT-2. Reto roto/no encontrado: saltar sigue habilitado y habilita el mundo verde', async ({ page }) => {
     const errores = [];
     page.on('pageerror', (e) => errores.push(e.message));
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
 
     for (let intento = 0; intento < 10; intento++) {
       await enviarAlHijo(page, {

@@ -65,7 +65,7 @@ async function pulsarContinuarDelPuzzle(hijo) {
 
 test.describe('PC — el reto de puzzle cierra la parada igual que los demás retos', () => {
   test('PC-0. Control: un reto de opción acertado llega con correcto: true', async ({ page }) => {
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
     const reto = { id: 'test-pc-opcion', tipo: 'opcion', pregunta: '¿Test?', opciones: ['A', 'B'], correctas: ['B'] };
     await mostrarReto(page, hijo, reto, 'input[name="op"]');
     await hijo.check('input[name="op"][value="B"]');
@@ -76,7 +76,7 @@ test.describe('PC — el reto de puzzle cierra la parada igual que los demás re
   });
 
   test('PC-1. Puzzle resuelto: RETO.COMPLETADO lleva correcto: true', async ({ page }) => {
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
     await mostrarReto(page, hijo, RETO_PUZZLE, '#puzzleIframe');
     // El ⏩ del puzzle es el mismo camino que resolverlo de verdad (endPuzzle(true)).
     await hijo.frameLocator('#puzzleIframe').locator('#skipBtn').click({ timeout: 15_000 });
@@ -94,7 +94,7 @@ test.describe('PC — el reto de puzzle cierra la parada igual que los demás re
     const logs = [];
     page.on('console', (m) => logs.push(m.text()));
 
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
     await mostrarReto(page, hijo, RETO_PUZZLE, '#puzzleIframe');
     await hijo.frameLocator('#puzzleIframe').locator('#skipBtn').click({ timeout: 15_000 });
     await pulsarContinuarDelPuzzle(hijo);
@@ -153,7 +153,7 @@ test.describe('PC — el reto de puzzle cierra la parada igual que los demás re
       const logs = [];
       page.on('console', (m) => logs.push(m.text()));
 
-      const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+      const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
       await mostrarReto(page, hijo, caso.reto, caso.selector);
       await caso.responder(hijo);
       await hijo.locator('button.btn', { hasText: '🫵' }).click({ timeout: 5000 });
@@ -182,7 +182,7 @@ test.describe('PC — el reto de puzzle cierra la parada igual que los demás re
   test('PC-4. Si el padre no contesta, el reto se cierra igual (el catch no bloquea la ventana)', async ({ page }) => {
     // La otra mitad del contrato: esperar el acuse no puede dejar al usuario encerrado. Con el
     // marco callado, el envío agota su plazo y aun así RETO.OCULTAR tiene que salir.
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
     await page.evaluate(() => { globalThis.__marcoContestaAcuses = false; });
     await mostrarReto(page, hijo, RETO_PUZZLE, '#puzzleIframe');
     await hijo.frameLocator('#puzzleIframe').locator('#skipBtn').click({ timeout: 15_000 });
@@ -202,7 +202,7 @@ test.describe('PC — el reto de puzzle cierra la parada igual que los demás re
     // el intervalo de un segundo del puzzle recibe sus 185 ticks, igual que con el usuario.
     test.setTimeout(120_000);
     await page.clock.install();
-    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html');
+    const hijo = await abrirHijoEnMarco(page, 'retos-hijo4.html', { confirmar: true });
     await mostrarReto(page, hijo, RETO_PUZZLE, '#puzzleIframe');
     await expect(hijo.frameLocator('#puzzleIframe').locator('#skipBtn')).toBeVisible({ timeout: 15_000 });
     // 180 s es el tiempo por defecto del puzzle (puzzle.html, `puzzleConfig.tiempo || 180`).
